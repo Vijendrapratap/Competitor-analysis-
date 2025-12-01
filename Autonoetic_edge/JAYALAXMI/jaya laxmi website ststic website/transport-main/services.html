@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Air Freight - International Freight Forwarders & Customs Brokers</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 500;
+            margin: 0;
+            padding: 0;
+            background-color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh; /* Ensure full viewport height */
+            align-items: center; /* Center align content */
+            justify-content: flex-start; /* Align content at the start */
+        }
+        
+        header {
+            background-color: white;
+            padding: 10px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: fixed; /* Fixed position to stay at the top */
+            width: 100%; /* Full width */
+            top: 0; /* Ensure it's at the top of the page */
+            z-index: 1000; /* Ensure it's above other content */
+        }
+        
+        .logo img {
+            height: 50px;
+            margin-left: 20px;
+        }
+        
+        nav ul {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+        }
+        
+        nav ul li {
+            margin-right: 20px;
+        }
+        
+        nav ul li a {
+            background-color: #1d7997;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 20px;
+            text-decoration: none;
+        }
+        
+        nav ul li a:hover {
+            background-color: #050505;
+        }
+        
+        .content {
+            margin-top: 80px; /* Adjust this value to avoid content overlapping with the header */
+            padding: 20px;
+            width: 100%;
+            max-width: 1200px; /* Optional: limit the max width */
+        }
+
+        .service-section {
+            margin-bottom: 40px; /* Space between sections */
+            display: flex; /* Use flexbox to align items */
+            justify-content: space-between; /* Space items evenly */
+            align-items: center; /* Center items vertically */
+        }
+
+        .service-section img {
+            max-width: 40%; /* Limit the width of the image */
+            height: auto; /* Maintain aspect ratio */
+            margin-right: 20px; /* Space between image and text */
+            animation: fadeInLeft 2s ease;
+        }
+        
+        .text-content {
+            max-width: 55%; /* Limit the width of the text content */
+            text-align: left; /* Align text content to the left */
+        }
+        
+        h1 {
+            font-size: 50px;
+            color: #333;
+            text-align: center;
+            font-weight: 100;
+            margin-top: 70px;
+            margin-bottom: 0;
+            animation: fadeInLeft 2s ease;
+        }
+        h2 {
+            font-size: 2em; /* Increase heading sizes */
+            margin-top: 2px;
+            margin-bottom: 2px;
+            font-weight: 100;
+            animation: fadeInLeft 2s ease;
+        }
+        
+        h3 {
+            font-size: 1.5em; /* Increase heading sizes */
+            animation: fadeInLeft 2s ease;
+        }
+
+        ul {
+            padding-left: 20px;
+            text-align: left; /* Align the list to the left */
+            animation: fadeInLeft 2s ease;
+        }
+
+        .view-more-button {
+            background-color: #1d7997;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 20px;
+        }
+
+        .view-more-button:hover {
+            background-color: #050505;
+        }
+        @keyframes fadeInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <img src="logo.png" alt="Company Logo">
+        </div>
+        <nav>
+            <ul>
+                <li><a href="index.html">Back to Home</a></li>
+            </ul>
+        </nav>
+    </header>
+    <h1 style="color:rgb(14, 13, 13)">Our Services</h1>
+    <div class="content">
+        <div class="service-section">
+            <img src="airfreight.jpg" alt="Air Freight Image">
+            <div class="text-content">
+                <h2>Air Freight</h2>
+                <hr>
+                <p>Our Air Freight services include:</p>
+                <ul>
+                    <li><b>Consolidated Shipments:</b> Leverage agile frameworks to provide a robust synopsis for high-level overviews. Iterative approaches to corporate strategy foster collaborative thinking to further the overall value proposition.</li>
+                    <li><b>Individual Shipments:</b> We transport goods to destinations where the consolidated shipment option does not exist.</li>
+                    <li><b>Charter:</b> For items such as bulky goods or cargo with special requirements, our specialists propose individual solutions.</li>
+                    <li><b>Customs Clearance:</b> Handle complete customs clearance on your behalf upon reaching the destination.</li>
+                    <li><b>Combined Sea/Air Freight:</b> Tailor-made solutions for goods requiring quick and cost-effective transport, combining sea and air freight.</li>
+                    <li><b>Crosstrade:</b> Handle cargo originating or arriving outside your country with reporting, tracking & tracing, central coordination, and invoicing services.</li>
+                    <li><b>Special Cargo and Services:</b> Transport delicate goods such as dangerous and perishable items.</li>
+                </ul>
+                
+            </div>
+        </div>
+
+        <!-- Repeat the above section for each additional service -->
+        <div class="service-section">
+            <img src="custom.jpg" alt="Air Freight Image">
+            <div class="text-content">
+                <h2>Customs Clearance</h2>
+                <hr>
+                <p>Our Air Freight services include:</p>
+                <ul>
+                    <li><b>Consolidated Shipments:</b> Leverage agile frameworks to provide a robust synopsis for high-level overviews. Iterative approaches to corporate strategy foster collaborative thinking to further the overall value proposition.</li>
+                    <li><b>Individual Shipments:</b> We transport goods to destinations where the consolidated shipment option does not exist.</li>
+                    <li><b>Charter:</b> For items such as bulky goods or cargo with special requirements, our specialists propose individual solutions.</li>
+                    <li><b>Customs Clearance:</b> Handle complete customs clearance on your behalf upon reaching the destination.</li>
+                    <li><b>Combined Sea/Air Freight:</b> Tailor-made solutions for goods requiring quick and cost-effective transport, combining sea and air freight.</li>
+                    <li><b>Crosstrade:</b> Handle cargo originating or arriving outside your country with reporting, tracking & tracing, central coordination, and invoicing services.</li>
+                    <li><b>Special Cargo and Services:</b> Transport delicate goods such as dangerous and perishable items.</li>
+                </ul>
+                
+            </div>
+        </div>
+        
+        <!-- Repeat this pattern for each additional service -->
+        <div class="service-section">
+            <img src="wearhouse.jpg" alt="Air Freight Image">
+            <div class="text-content">
+                <h2>Warehousing</h2>
+                <hr>
+                <p>Our Air Freight services include:</p>
+                <ul>
+                    <li><b>Consolidated Shipments:</b> Leverage agile frameworks to provide a robust synopsis for high-level overviews. Iterative approaches to corporate strategy foster collaborative thinking to further the overall value proposition.</li>
+                    <li><b>Individual Shipments:</b> We transport goods to destinations where the consolidated shipment option does not exist.</li>
+                    <li><b>Charter:</b> For items such as bulky goods or cargo with special requirements, our specialists propose individual solutions.</li>
+                    <li><b>Customs Clearance:</b> Handle complete customs clearance on your behalf upon reaching the destination.</li>
+                    <li><b>Combined Sea/Air Freight:</b> Tailor-made solutions for goods requiring quick and cost-effective transport, combining sea and air freight.</li>
+                    <li><b>Crosstrade:</b> Handle cargo originating or arriving outside your country with reporting, tracking & tracing, central coordination, and invoicing services.</li>
+                    <li><b>Special Cargo and Services:</b> Transport delicate goods such as dangerous and perishable items.</li>
+                </ul>
+                
+            </div>
+        </div>
+
+        <div class="service-section">
+            <img src="marine.jpg" alt="Air Freight Image">
+            <div class="text-content">
+                <h2>Marine Insurance</h2>
+                <hr>
+                <p>Our Air Freight services include:</p>
+                <ul>
+                    <li><b>Consolidated Shipments:</b> Leverage agile frameworks to provide a robust synopsis for high-level overviews. Iterative approaches to corporate strategy foster collaborative thinking to further the overall value proposition.</li>
+                    <li><b>Individual Shipments:</b> We transport goods to destinations where the consolidated shipment option does not exist.</li>
+                    <li><b>Charter:</b> For items such as bulky goods or cargo with special requirements, our specialists propose individual solutions.</li>
+                    <li><b>Customs Clearance:</b> Handle complete customs clearance on your behalf upon reaching the destination.</li>
+                    <li><b>Combined Sea/Air Freight:</b> Tailor-made solutions for goods requiring quick and cost-effective transport, combining sea and air freight.</li>
+                    <li><b>Crosstrade:</b> Handle cargo originating or arriving outside your country with reporting, tracking & tracing, central coordination, and invoicing services.</li>
+                    <li><b>Special Cargo and Services:</b> Transport delicate goods such as dangerous and perishable items.</li>
+                </ul>
+                
+            </div>
+        </div>
+
+        <div class="service-section">
+            <img src="door.jpg" alt="Air Freight Image">
+            <div class="text-content">
+                <h2>Door Delivery</h2>
+                <hr>
+                <p>Our Air Freight services include:</p>
+                <ul>
+                    <li><b>Consolidated Shipments:</b> Leverage agile frameworks to provide a robust synopsis for high-level overviews. Iterative approaches to corporate strategy foster collaborative thinking to further the overall value proposition.</li>
+                    <li><b>Individual Shipments:</b> We transport goods to destinations where the consolidated shipment option does not exist.</li>
+                    <li><b>Charter:</b> For items such as bulky goods or cargo with special requirements, our specialists propose individual solutions.</li>
+                    <li><b>Customs Clearance:</b> Handle complete customs clearance on your behalf upon reaching the destination.</li>
+                    <li><b>Combined Sea/Air Freight:</b> Tailor-made solutions for goods requiring quick and cost-effective transport, combining sea and air freight.</li>
+                    <li><b>Crosstrade:</b> Handle cargo originating or arriving outside your country with reporting, tracking & tracing, central coordination, and invoicing services.</li>
+                    <li><b>Special Cargo and Services:</b> Transport delicate goods such as dangerous and perishable items.</li>
+                </ul>
+                
+            </div>
+        </div>
+
+        <div class="service-section">
+            <img src="fumigation.jpg" alt="Air Freight Image">
+            <div class="text-content">
+                <h2>Fumigation Services</h2>
+                <hr>
+                <p>Our Air Freight services include:</p>
+                <ul>
+                    <li><b>Consolidated Shipments:</b> Leverage agile frameworks to provide a robust synopsis for high-level overviews. Iterative approaches to corporate strategy foster collaborative thinking to further the overall value proposition.</li>
+                    <li><b>Individual Shipments:</b> We transport goods to destinations where the consolidated shipment option does not exist.</li>
+                    <li><b>Charter:</b> For items such as bulky goods or cargo with special requirements, our specialists propose individual solutions.</li>
+                    <li><b>Customs Clearance:</b> Handle complete customs clearance on your behalf upon reaching the destination.</li>
+                    <li><b>Combined Sea/Air Freight:</b> Tailor-made solutions for goods requiring quick and cost-effective transport, combining sea and air freight.</li>
+                    <li><b>Crosstrade:</b> Handle cargo originating or arriving outside your country with reporting, tracking & tracing, central coordination, and invoicing services.</li>
+                    <li><b>Special Cargo and Services:</b> Transport delicate goods such as dangerous and perishable items.</li>
+                </ul>
+                
+            </div>
+        </div>
+
+        <div class="service-section">
+            <img src="container.jpg" alt="Air Freight Image">
+            <div class="text-content">
+                <h2>Reefer Containers</h2>
+                <hr>
+                <p>Our Air Freight services include:</p>
+                <ul>
+                    <li><b>Consolidated Shipments:</b> Leverage agile frameworks to provide a robust synopsis for high-level overviews. Iterative approaches to corporate strategy foster collaborative thinking to further the overall value proposition.</li>
+                    <li><b>Individual Shipments:</b> We transport goods to destinations where the consolidated shipment option does not exist.</li>
+                    <li><b>Charter:</b> For items such as bulky goods or cargo with special requirements, our specialists propose individual solutions.</li>
+                    <li><b>Customs Clearance:</b> Handle complete customs clearance on your behalf upon reaching the destination.</li>
+                    <li><b>Combined Sea/Air Freight:</b> Tailor-made solutions for goods requiring quick and cost-effective transport, combining sea and air freight.</li>
+                    <li><b>Crosstrade:</b> Handle cargo originating or arriving outside your country with reporting, tracking & tracing, central coordination, and invoicing services.</li>
+                    <li><b>Special Cargo and Services:</b> Transport delicate goods such as dangerous and perishable items.</li>
+                </ul>
+                
+            </div>
+        </div>
+
+
+        <div class="service-section">
+            <img src="trailers.jpg" alt="Air Freight Image">
+            <div class="text-content">
+                <h2>Trailers</h2>
+                <hr>
+                <p>Our Air Freight services include:</p>
+                <ul>
+                    <li><b>Consolidated Shipments:</b> Leverage agile frameworks to provide a robust synopsis for high-level overviews. Iterative approaches to corporate strategy foster collaborative thinking to further the overall value proposition.</li>
+                    <li><b>Individual Shipments:</b> We transport goods to destinations where the consolidated shipment option does not exist.</li>
+                    <li><b>Charter:</b> For items such as bulky goods or cargo with special requirements, our specialists propose individual solutions.</li>
+                    <li><b>Customs Clearance:</b> Handle complete customs clearance on your behalf upon reaching the destination.</li>
+                    <li><b>Combined Sea/Air Freight:</b> Tailor-made solutions for goods requiring quick and cost-effective transport, combining sea and air freight.</li>
+                    <li><b>Crosstrade:</b> Handle cargo originating or arriving outside your country with reporting, tracking & tracing, central coordination, and invoicing services.</li>
+                    <li><b>Special Cargo and Services:</b> Transport delicate goods such as dangerous and perishable items.</li>
+                </ul>
+                
+            </div>
+        </div>
+
+    </div>
+</body>
+</html>
