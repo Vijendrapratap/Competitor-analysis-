@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { api, type Competitor } from '../../lib/api';
+import { api, type Competitor, type CompetitorDetail } from '../../lib/api';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -32,6 +32,9 @@ export default function CompetitorsPage() {
     const [editingId, setEditingId] = useState<number | null>(null);
     const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
     const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+    const [viewingId, setViewingId] = useState<number | null>(null);
+    const [viewData, setViewData] = useState<CompetitorDetail | null>(null);
+    const [viewLoading, setViewLoading] = useState(false);
 
     const showToast = useCallback((message: string, type: 'success' | 'error' = 'success') => {
         setToast({ message, type });
@@ -72,6 +75,26 @@ export default function CompetitorsPage() {
     const startEdit = (competitor: Competitor) => {
         setEditingId(competitor.id);
         setShowForm(true);
+    };
+
+    const toggleView = async (id: number) => {
+        if (viewingId === id) {
+            setViewingId(null);
+            setViewData(null);
+            return;
+        }
+        setViewingId(id);
+        setViewData(null);
+        setViewLoading(true);
+        try {
+            const res = await api.getCompetitor(id);
+            setViewData(res.data);
+        } catch {
+            showToast('Failed to load competitor data', 'error');
+            setViewingId(null);
+        } finally {
+            setViewLoading(false);
+        }
     };
 
     const cancelForm = () => {
@@ -175,6 +198,7 @@ export default function CompetitorsPage() {
                         </thead>
                         <tbody>
                             {competitors.map((c) => (
+                                <>
                                 <tr key={c.id}>
                                     <td>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -246,6 +270,13 @@ export default function CompetitorsPage() {
                                         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
                                             <button
                                                 className="btn-secondary"
+                                                onClick={() => toggleView(c.id)}
+                                                style={{ padding: '6px 14px', borderColor: viewingId === c.id ? 'var(--accent)' : undefined }}
+                                            >
+                                                {viewingId === c.id ? '▲ Hide' : '▼ View'}
+                                            </button>
+                                            <button
+                                                className="btn-secondary"
                                                 onClick={() => startEdit(c)}
                                                 style={{ padding: '6px 14px' }}
                                             >
@@ -261,6 +292,17 @@ export default function CompetitorsPage() {
                                         </div>
                                     </td>
                                 </tr>
+                                {viewingId === c.id && (
+                                    <tr key={`view-${c.id}`}>
+                                        <td colSpan={6} style={{ padding: 0, background: 'rgba(99,102,241,0.04)' }}>
+                                            <CompetitorDataPanel
+                                                loading={viewLoading}
+                                                data={viewData}
+                                            />
+                                        </td>
+                                    </tr>
+                                )}
+                                </>
                             ))}
                         </tbody>
                     </table>
@@ -424,6 +466,129 @@ function CompetitorForm({
                     </button>
                 </div>
             </form>
+        </div>
+    );
+}
+
+// ── CompetitorDataPanel ───────────────────────────────────────────────────────
+
+function CompetitorDataPanel({
+    loading,
+    data,
+}: {
+    loading: boolean;
+    data: CompetitorDetail | null;
+}) {
+    if (loading) {
+        return (
+            <div style={{ padding: 24, display: 'flex', justifyContent: 'center' }}>
+                <div className="loading-spinner" />
+            </div>
+        );
+    }
+
+    if (!data) return null;
+
+    const { ads, pageMetrics, recentPosts, latestAnalysis } = data;
+
+    return (
+        <div style={{ padding: '16px 24px 20px', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
+            {/* Ads */}
+            <div style={{ background: 'rgba(99,102,241,0.08)', borderRadius: 12, padding: 16 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>
+                    Meta Ads
+                </div>
+                <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-primary)', marginBottom: 6 }}>
+                    {ads.length}
+                </div>
+                {ads[0]?.adCopy && (
+                    <div style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.5,
+                        display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                        "{ads[0].adCopy}"
+                    </div>
+                )}
+                {ads.length === 0 && (
+                    <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>No ads scraped yet</div>
+                )}
+            </div>
+
+            {/* Posts */}
+            <div style={{ background: 'rgba(16,185,129,0.08)', borderRadius: 12, padding: 16 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>
+                    Recent Posts
+                </div>
+                <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-primary)', marginBottom: 6 }}>
+                    {recentPosts.length}
+                </div>
+                {recentPosts[0] && (
+                    <div style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.5,
+                        display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                        {recentPosts[0].postText || '(no text)'}
+                    </div>
+                )}
+                {recentPosts.length === 0 && (
+                    <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>No posts scraped yet</div>
+                )}
+            </div>
+
+            {/* Page Metrics */}
+            <div style={{ background: 'rgba(245,158,11,0.08)', borderRadius: 12, padding: 16 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>
+                    Page Metrics
+                </div>
+                {pageMetrics ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                        <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+                            <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
+                                {pageMetrics.pageLikes?.toLocaleString() ?? '—'}
+                            </span> page likes
+                        </div>
+                        <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+                            <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
+                                {pageMetrics.followers?.toLocaleString() ?? '—'}
+                            </span> followers
+                        </div>
+                        {pageMetrics.avgEngagementRate != null && (
+                            <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+                                <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
+                                    {pageMetrics.avgEngagementRate.toFixed(1)}%
+                                </span> engagement
+                            </div>
+                        )}
+                    </div>
+                ) : (
+                    <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>No page data yet</div>
+                )}
+            </div>
+
+            {/* Analysis */}
+            <div style={{ background: 'rgba(239,68,68,0.08)', borderRadius: 12, padding: 16 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>
+                    Latest Analysis
+                </div>
+                {latestAnalysis ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                        <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-primary)' }}>
+                            {latestAnalysis.healthScore}
+                            <span style={{ fontSize: 12, fontWeight: 400, color: 'var(--text-muted)', marginLeft: 4 }}>/100</span>
+                        </div>
+                        <div style={{ display: 'flex', gap: 8 }}>
+                            <span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>
+                                Paid: <strong>{latestAnalysis.paidScore}</strong>
+                            </span>
+                            <span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>
+                                Organic: <strong>{latestAnalysis.organicScore}</strong>
+                            </span>
+                        </div>
+                        <span className={`badge ${latestAnalysis.threatLevel === 'high' ? 'badge-critical' : latestAnalysis.threatLevel === 'medium' ? 'badge-warning' : 'badge-success'}`}
+                            style={{ alignSelf: 'flex-start' }}>
+                            {latestAnalysis.threatLevel} threat
+                        </span>
+                    </div>
+                ) : (
+                    <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>No analysis yet</div>
+                )}
+            </div>
         </div>
     );
 }

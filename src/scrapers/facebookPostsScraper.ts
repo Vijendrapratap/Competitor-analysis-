@@ -60,7 +60,14 @@ interface RawFacebookPost {
     shares?: number;
     sharesCount?: number;
     type?: string;
-    media?: Array<{ thumbnail?: string; photo_image?: { uri?: string } }>;
+    // Actual structure from apify~facebook-posts-scraper:
+    media?: Array<{
+        __typename?: string;         // "Photo" | "Video" — used for postType detection
+        publish_time?: number;       // Unix timestamp (seconds) — present on Video items
+        thumbnail?: string;
+        photo_image?: { uri?: string };
+        url?: string;
+    }>;
     images?: string[];
     photoUrl?: string;
     videoUrl?: string;
@@ -209,7 +216,7 @@ function normalizePost(raw: RawFacebookPost, competitorName: string): Normalized
     return {
         competitorName,
         postText: raw.text ?? raw.message ?? '',
-        postDate: normalizeDate(raw.time ?? raw.timestamp ?? raw.date ?? null),
+        postDate: extractPostDate(raw),
         likes: raw.likes ?? raw.likesCount ?? raw.reactions ?? 0,
         comments: raw.comments ?? raw.commentsCount ?? 0,
         shares: raw.shares ?? raw.sharesCount ?? 0,
@@ -217,6 +224,27 @@ function normalizePost(raw: RawFacebookPost, competitorName: string): Normalized
         postType: inferPostType(raw),
         imageUrls: extractImageUrls(raw),
     };
+}
+
+/**
+ * Extract post date from available fields.
+ * The Apify Facebook posts actor does not include a top-level date field.
+ * Dates are buried in media[0].publish_time (Unix seconds, only on Video items).
+ * Falls back to current time so posts are always queryable by date.
+ */
+function extractPostDate(raw: RawFacebookPost): string {
+    // Try top-level date fields (may be present in some actor versions)
+    const topDate = raw.time ?? raw.timestamp ?? raw.date;
+    if (topDate) return normalizeDate(topDate) ?? new Date().toISOString();
+
+    // Extract from media[0].publish_time (Unix seconds, present on Video/Reel items)
+    const publishTime = raw.media?.[0]?.publish_time;
+    if (publishTime && typeof publishTime === 'number') {
+        return new Date(publishTime * 1000).toISOString();
+    }
+
+    // Fallback: use current scrape time so the post has a valid date for analysis
+    return new Date().toISOString();
 }
 
 /** Try to coerce a date-like value into an ISO string. */
@@ -228,7 +256,12 @@ function normalizeDate(value: string | null): string | null {
 
 /** Infer the post type from available fields. */
 function inferPostType(raw: RawFacebookPost): NormalizedPost['postType'] {
-    // Explicit type from the actor
+    // Check media[0].__typename — actual field in apify~facebook-posts-scraper output
+    const mediaTypeName = raw.media?.[0]?.__typename;
+    if (mediaTypeName === 'Video') return 'video';
+    if (mediaTypeName === 'Photo') return 'photo';
+
+    // Explicit type field from the actor (some actor versions)
     if (raw.type) {
         const t = String(raw.type).toLowerCase();
         if (t.includes('video')) return 'video';
