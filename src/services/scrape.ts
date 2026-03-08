@@ -13,7 +13,6 @@ import { FacebookPageScraper } from '../scrapers/facebookPage.js';
 import { GoogleTrendsFetcher } from '../scrapers/googleTrends.js';
 
 // Apify-based scrapers
-// @ts-ignore — metaAdsScraper.js has no type declarations
 import { scrapeCompetitorMetaAds } from '../scrapers/metaAdsScraper.js';
 import {
     scrapeCompetitorFacebookPosts,
@@ -93,7 +92,9 @@ function mapApifyPostToNewPost(
 ): NewFacebookPost {
     return {
         competitorId: competitor.id,
-        postId: post.postUrl?.split('/').pop() ?? `apify_${Date.now()}`,
+        // Strip trailing slash before splitting to handle reel URLs ending in "/"
+        // e.g. https://www.facebook.com/reel/1627935738428723/ → "1627935738428723"
+        postId: (post.postUrl ?? '').replace(/\/$/, '').split('/').pop() || `apify_${competitor.id}_${Date.now()}`,
         postUrl: post.postUrl ?? '',
         postType: mapPostType(post.postType),
         postText: post.postText || null,
@@ -285,6 +286,27 @@ export class ScrapeService {
 
                 result.adsScraped += ads.length;
                 log.info(`  ${ads.length} ads for competitor ${competitor.id} (${competitor.name})`);
+
+                // Bonus: save pageLikes from Apify response as supplemental page metrics
+                if (!dryRun && adsResult.pageData?.pageLikes) {
+                    try {
+                        await insertPageMetrics({
+                            competitorId: competitor.id,
+                            pageUrl: competitor.facebookPageUrl,
+                            followers: null,
+                            pageLikes: adsResult.pageData.pageLikes,
+                            rating: null,
+                            reviewCount: null,
+                            postsLast30d: null,
+                            avgEngagementRate: null,
+                            lastPostDate: null,
+                            scrapedAt: new Date(),
+                        });
+                        log.info(`  Saved bonus pageLikes=${adsResult.pageData.pageLikes} for competitor ${competitor.id}`);
+                    } catch (pmErr) {
+                        log.warn(`  Failed to save bonus page metrics for ${competitor.id}: ${pmErr instanceof Error ? pmErr.message : String(pmErr)}`);
+                    }
+                }
             }
         } catch (err) {
             const msg = err instanceof Error ? err.message : String(err);

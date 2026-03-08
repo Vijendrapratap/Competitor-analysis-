@@ -126,34 +126,70 @@ export default function PipelinePage() {
                                 <th>Stage</th>
                                 <th>Started</th>
                                 <th>Duration</th>
+                                <th>Results</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {runs.map((run) => (
-                                <tr key={run.id}>
-                                    <td style={{ fontFamily: 'monospace', fontSize: 12 }}>{run.id}</td>
-                                    <td>
-                                        <span
-                                            className={`badge ${run.status === 'completed' ? 'badge-success' : run.status === 'failed' ? 'badge-critical' : 'badge-warning'}`}
-                                        >
-                                            {run.status}
-                                        </span>
-                                    </td>
-                                    <td style={{ textTransform: 'capitalize' }}>{run.stage}</td>
-                                    <td>{new Date(run.startedAt).toLocaleTimeString()}</td>
-                                    <td>
-                                        {run.completedAt
-                                            ? `${Math.round((new Date(run.completedAt).getTime() - new Date(run.startedAt).getTime()) / 1000)}s`
-                                            : '—'}
-                                    </td>
-                                </tr>
-                            ))}
+                            {runs.map((run) => {
+                                const errors = extractErrors(run.results);
+                                return (
+                                    <tr key={run.id}>
+                                        <td style={{ fontFamily: 'monospace', fontSize: 12 }}>{run.id}</td>
+                                        <td>
+                                            <span
+                                                className={`badge ${run.status === 'completed' ? 'badge-success' : run.status === 'failed' ? 'badge-critical' : 'badge-warning'}`}
+                                            >
+                                                {run.status}
+                                            </span>
+                                        </td>
+                                        <td style={{ textTransform: 'capitalize' }}>{run.stage}</td>
+                                        <td>{new Date(run.startedAt).toLocaleTimeString()}</td>
+                                        <td>
+                                            {run.completedAt
+                                                ? `${Math.round((new Date(run.completedAt).getTime() - new Date(run.startedAt).getTime()) / 1000)}s`
+                                                : '—'}
+                                        </td>
+                                        <td>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                                                <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+                                                    {summarizeResults(run.results)}
+                                                </span>
+                                                {errors.length > 0 && (
+                                                    <span
+                                                        className="badge badge-critical"
+                                                        title={errors.join('\n')}
+                                                        style={{ cursor: 'help' }}
+                                                    >
+                                                        {errors.length} error{errors.length > 1 ? 's' : ''}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                );
+                            })}
                         </tbody>
                     </table>
                 )}
             </div>
         </div>
     );
+}
+
+// ── Result helpers ────────────────────────────────────────────────────────────
+
+function summarizeResults(results: Record<string, unknown>): string {
+    const s = results.scrape as any;
+    const a = results.analyze as any;
+    const g = results.generate as any;
+    if (s) return `${s.adsScraped ?? 0} ads · ${s.postsScraped ?? 0} posts · ${s.pagesScraped ?? 0} pages`;
+    if (a) return `${a.competitorsAnalyzed ?? 0} analyzed · ${a.alertsGenerated ?? 0} alerts`;
+    if (g) return `Report generated`;
+    return '—';
+}
+
+function extractErrors(results: Record<string, unknown>): string[] {
+    return Object.values(results).flatMap((v: any) => v?.errors ?? []);
 }
 
 function ActionCard({

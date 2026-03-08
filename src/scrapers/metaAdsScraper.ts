@@ -42,6 +42,10 @@ export interface CompetitorMetaAdsResult {
     competitorName: string; // Name of the competitor.
     scrapedAt: string;      // ISO timestamp of when the scrape ran.
     ads: NormalizedAd[];    // Array of normalized ads.
+    pageData?: {            // Bonus page-level data extracted from the ads response.
+        pageLikes: number | null;
+        instagramFollowers: number | null;
+    };
     error?: string;         // Error message if the scrape failed.
 }
 
@@ -208,12 +212,20 @@ async function scrapeOneCompetitorAds(competitor: MetaAdsCompetitorInput): Promi
         const rawAds = await scrapeMetaAds(inputPayload);
         const normalizedAds = rawAds.map((raw: any) => normalizeAd(raw, name));
 
-        log.info(`✓ ${name}: fetched ${normalizedAds.length} ad(s)`);
+        // Extract bonus page-level data from the first ad's response
+        const firstRaw = rawAds[0] as any | undefined;
+        const pageData = firstRaw ? {
+            pageLikes: typeof firstRaw.pageLikes === 'number' ? firstRaw.pageLikes : null,
+            instagramFollowers: typeof firstRaw.pageInstagramFollowers === 'number' ? firstRaw.pageInstagramFollowers : null,
+        } : undefined;
+
+        log.info(`✓ ${name}: fetched ${normalizedAds.length} ad(s)${pageData?.pageLikes ? `, pageLikes=${pageData.pageLikes}` : ''}`);
 
         return {
             competitorName: name,
             scrapedAt: new Date().toISOString(),
             ads: normalizedAds,
+            pageData,
         };
     } catch (err) {
         const errorMsg = err instanceof Error ? err.message : String(err);
@@ -233,19 +245,32 @@ async function scrapeOneCompetitorAds(competitor: MetaAdsCompetitorInput): Promi
 // ─────────────────────────────────────────────────────────────────────────────
 
 function normalizeAd(raw: any, competitorName: string): NormalizedAd {
+    // adText: actual field is raw.adText (joined) or raw.adCreativeBodies[0] (first variation)
+    const adText = (() => {
+        if (Array.isArray(raw.adCreativeBodies)) {
+            const bodies = (raw.adCreativeBodies as string[]).filter(Boolean);
+            if (bodies.length > 0) return bodies[0];
+        }
+        return String(raw.adText ?? raw.adCreativeBody ?? raw.ad_creative_body ?? raw.body ?? raw.text ?? '');
+    })();
+
     return {
         competitorName,
-        adId: String(raw.adId ?? raw.ad_id ?? raw.id ?? raw.adArchiveID ?? ''),
-        adText: String(raw.adCreativeBody ?? raw.ad_creative_body ?? raw.body ?? raw.text ?? ''),
-        adHeadline: stringOrNull(raw.adCreativeLinkTitle ?? raw.ad_creative_link_title ?? raw.headline ?? raw.title),
+        adId: String(raw.adArchiveID ?? raw.adId ?? raw.ad_id ?? raw.id ?? ''),
+        adText,
+        // adHeadline: actual field is raw.ctaHeadline (not adCreativeLinkTitle)
+        adHeadline: stringOrNull(raw.ctaHeadline ?? raw.adCreativeLinkTitle ?? raw.ad_creative_link_title ?? raw.headline ?? raw.title),
+        // adDescription: actual field is raw.ctaDescription
         adDescription: stringOrNull(
+            raw.ctaDescription ??
             raw.adCreativeLinkDescription ??
             raw.adCreativeLinkCaption ??
             raw.ad_creative_link_description ??
             raw.ad_creative_link_caption ??
             raw.description
         ),
-        callToAction: stringOrNull(raw.callToActionType ?? raw.call_to_action_type ?? raw.cta ?? raw.ctaText),
+        // callToAction: no direct CTA type in response; use ctaDomain as fallback identifier
+        callToAction: stringOrNull(raw.callToActionType ?? raw.call_to_action_type ?? raw.cta ?? raw.ctaText ?? raw.ctaDomain),
         adStartDate: normalizeDate(raw.adCreationTime ?? raw.ad_creation_time ?? raw.startDate ?? raw.started),
         adEndDate: normalizeDate(raw.adDeliveryStopTime ?? raw.ad_delivery_stop_time ?? raw.endDate ?? raw.stopped),
         adStatus: inferAdStatus(raw),
