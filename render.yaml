@@ -1,0 +1,172 @@
+# =============================================================================
+# Render Blueprint — Competitor Intelligence System
+# https://render.com/docs/blueprint-spec
+#
+# One-click deploy:
+#   1. Push this repo to GitHub/GitLab
+#   2. Go to https://dashboard.render.com/blueprints → New Blueprint Instance
+#   3. Connect your repo → Render creates all services automatically
+#   4. Set the 5 secret env vars manually (see RENDER_DEPLOYMENT.md §4)
+#   5. Trigger the first migration run (see RENDER_DEPLOYMENT.md §5)
+# =============================================================================
+
+databases:
+  # ── PostgreSQL 16 ────────────────────────────────────────────────────────────
+  - name: competitor-intel-db
+    databaseName: competitor_intel
+    user: competitor_user
+    plan: free            # 90-day free trial → upgrade to 'starter' ($7/mo) after
+    region: singapore     # Closest region to Hua Hin, Thailand
+
+services:
+  # ── Main Web Service (Scheduler + Health Check) ───────────────────────────────
+  # Uses 'web' type so Render performs health checks and keeps it alive 24/7.
+  # The internal node-cron fires at 23:00 UTC (= 06:00 Bangkok time) each day.
+  - type: web
+    name: competitor-intel
+    runtime: node
+    plan: starter         # Required — free services sleep and miss cron triggers
+    region: singapore
+    autoDeploy: true
+
+    buildCommand: >-
+      npm ci
+      && PLAYWRIGHT_BROWSERS_PATH=/opt/render/project/.playwright
+         npx playwright install --with-deps chromium
+      && npm run build
+      && mkdir -p dist/reports
+      && cp -r src/reports/templates dist/reports/
+
+    startCommand: bash render-start.sh
+
+    # Render calls this every 30s to confirm the service is healthy
+    healthCheckPath: /health
+
+    envVars:
+      # ── Runtime ──────────────────────────────────────────────────────────────
+      - key: NODE_ENV
+        value: production
+      - key: LOG_LEVEL
+        value: info
+
+      # ── PostgreSQL — auto-wired from the database defined above ──────────────
+      - key: DATABASE_URL
+        fromDatabase:
+          name: competitor-intel-db
+          property: connectionString
+      - key: DB_HOST
+        fromDatabase:
+          name: competitor-intel-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: competitor-intel-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: competitor-intel-db
+          property: database
+      - key: DB_USER
+        fromDatabase:
+          name: competitor-intel-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: competitor-intel-db
+          property: password
+      # Render managed PostgreSQL requires SSL
+      - key: DB_SSL
+        value: "true"
+      # Keep pool small on shared hosting
+      - key: DB_POOL_MAX
+        value: "5"
+
+      # ── Playwright / Chromium ─────────────────────────────────────────────────
+      # render-start.sh auto-detects the exact chrome binary path at runtime
+      - key: PLAYWRIGHT_BROWSERS_PATH
+        value: /opt/render/project/.playwright
+      - key: SCRAPER_HEADLESS
+        value: "true"
+      - key: SCRAPER_VIEWPORT_WIDTH
+        value: "1440"
+      - key: SCRAPER_VIEWPORT_HEIGHT
+        value: "900"
+      # Longer timeout for slower cloud environment
+      - key: SCRAPER_TIMEOUT_MS
+        value: "60000"
+      - key: SCRAPER_MAX_RETRIES
+        value: "2"
+      # Slower delays to avoid rate-limits on shared IPs
+      - key: SCRAPER_REQUEST_DELAY_MS
+        value: "4000"
+
+      # ── PDF / Puppeteer ───────────────────────────────────────────────────────
+      - key: PDF_FORMAT
+        value: A4
+      # /tmp is cleared between deploys but fine for testing
+      # The PDF is emailed during the same run, so persistence isn't needed
+      - key: PDF_OUTPUT_DIR
+        value: /tmp/competitor-intel/exports
+
+      # ── File Paths ────────────────────────────────────────────────────────────
+      - key: SCREENSHOTS_DIR
+        value: /tmp/competitor-intel/screenshots
+      - key: REPORTS_DIR
+        value: /tmp/competitor-intel/exports
+      # Templates are copied to dist/reports/templates/ during build
+      - key: TEMPLATES_DIR
+        value: /opt/render/project/src/dist/reports/templates
+
+      # ── Meta Ads Library ──────────────────────────────────────────────────────
+      - key: META_ADS_COUNTRY
+        value: TH
+      # Reduced for testing — use 50 in production
+      - key: META_ADS_MAX_PER_COMPETITOR
+        value: "20"
+
+      # ── Google Trends ─────────────────────────────────────────────────────────
+      - key: GOOGLE_TRENDS_GEO
+        value: TH
+      - key: GOOGLE_TRENDS_TIMEFRAME_DAYS
+        value: "30"
+      - key: GOOGLE_TRENDS_REQUEST_DELAY_MS
+        value: "3000"
+      - key: GOOGLE_TRENDS_MAX_RETRIES
+        value: "3"
+
+      # ── OpenRouter (Anthropic-compatible AI via openrouter.ai) ───────────────
+      - key: OPENROUTER_MODEL
+        value: anthropic/claude-3.5-haiku
+      - key: OPENROUTER_MAX_TOKENS
+        value: "1000"
+      - key: OPENROUTER_MAX_RETRIES
+        value: "2"
+
+      # ── Analysis Thresholds ───────────────────────────────────────────────────
+      - key: HEALTH_SCORE_PAID_WEIGHT
+        value: "50"
+      - key: HEALTH_SCORE_ORGANIC_WEIGHT
+        value: "50"
+      - key: THREAT_HIGH_THRESHOLD
+        value: "75"
+      - key: THREAT_MEDIUM_THRESHOLD
+        value: "40"
+
+      # ── SECRETS — must be set manually in Render Dashboard after deploy ────────
+      # Go to: Dashboard → competitor-intel → Environment → Add env var
+      #
+      # RESEND_API_KEY       → your Resend API key (re_xxxx...)
+      # EMAIL_FROM           → e.g. "Competitor Intel <intel@yourdomain.com>"
+      # EMAIL_RECIPIENTS     → comma-separated, e.g. "you@example.com"
+      # EMAIL_TEST_RECIPIENT → your personal email for testing
+      # OPENROUTER_API_KEY   → your OpenRouter API key (sk-or-v1-xxxx...)
+      - key: RESEND_API_KEY
+        sync: false
+      - key: EMAIL_FROM
+        sync: false
+      - key: EMAIL_RECIPIENTS
+        sync: false
+      - key: EMAIL_TEST_RECIPIENT
+        sync: false
+      - key: OPENROUTER_API_KEY
+        sync: false

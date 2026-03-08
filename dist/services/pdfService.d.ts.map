@@ -1,0 +1,1 @@
+{"version":3,"file":"pdfService.d.ts","sourceRoot":"","sources":["../../src/services/pdfService.ts"],"names":[],"mappings":"AA+CA;;GAEG;AACH,wBAAsB,eAAe,CAAC,WAAW,EAAE,MAAM,GAAG,OAAO,CAAC,MAAM,CAAC,CAuB1E;AAED;;GAEG;AACH,wBAAsB,qBAAqB,CACvC,cAAc,EAAE,MAAM,EACtB,WAAW,EAAE,MAAM,GACpB,OAAO,CAAC,MAAM,CAAC,CAUjB;AAED;;GAEG;AACH,wBAAsB,YAAY,IAAI,OAAO,CAAC,IAAI,CAAC,CAKlD"}

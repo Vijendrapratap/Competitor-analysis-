@@ -1,0 +1,266 @@
+{# ═══════════════════════════════════════════════════════════════════════════
+   Competitor Page Template — Enhanced individual competitor page
+   ═══════════════════════════════════════════════════════════════════════════ #}
+
+{% import 'base_layout.html' as layout %}
+
+<div class="page" style="page-break-before: always;">
+
+  {# ── Page Header ─────────────────────────────────────────────────────── #}
+  <div class="page-header">
+    <span class="page-header-brand">{{ brand_name }}</span>
+    <span class="page-header-date">{{ date_en }} | {{ date_th }}</span>
+  </div>
+
+  <div class="page-content">
+
+    {# ── 1. Competitor Banner ──────────────────────────────────────────── #}
+    <div class="competitor-banner">
+      <div class="competitor-banner-left">
+        <span class="competitor-number">{{ "%02d." | format(comp_number) }}</span>
+        <span class="competitor-name">{{ comp.name }}{% if comp.name_thai %} · {{ comp.name_thai }}{% endif %}</span>
+      </div>
+      <div>
+        {% if comp.is_market_leader %}
+          <span class="badge badge-leader">MARKET LEADER — {{ comp.total_active_ads }} Ads</span>
+        {% elif comp.is_new_entrant %}
+          <span class="badge badge-new">🆕 NEW ADVERTISER — {{ comp.total_active_ads }} Ads</span>
+        {% else %}
+          {{ layout.ad_badge(comp.total_active_ads) }}
+        {% endif %}
+      </div>
+    </div>
+
+    {# ── 2. Facebook Ads Library Link ──────────────────────────────────── #}
+    <div class="fb-link-box">
+      <div class="fb-link-label">Facebook Ads Library Link:</div>
+      <div class="fb-link-url">{{ comp.ads_library_url | default('N/A') }}</div>
+    </div>
+
+    {# ── 3. Screenshot Area ────────────────────────────────────────────── #}
+    <div class="screenshot-area">
+      {% if comp.screenshot_path %}
+        <img src="{{ comp.screenshot_path }}" alt="{{ comp.name }} Ad Library Screenshot">
+      {% else %}
+        <div class="screenshot-placeholder-text">
+          📷 Screenshot not available<br>
+          <span class="fs-9">{{ comp.ads_library_url | default('') }}</span>
+        </div>
+      {% endif %}
+    </div>
+
+    {# ── 4. Data Table ─────────────────────────────────────────────────── #}
+    <table class="data-table data-table-kv">
+      <tbody>
+        {# ── Row: Total Active Ads ─────────────────────────────────────── #}
+        <tr>
+          <td class="label-cell">
+            <span class="label-en">Total Active Ads</span>
+            <span class="label-th">โฆษณาที่ใช้งานอยู่</span>
+          </td>
+          <td class="value-cell">
+            {{ layout.ad_badge(comp.total_active_ads, comp.is_new_entrant, comp.is_market_leader) }}
+          </td>
+        </tr>
+
+        {# ── Row: Ad Types ─────────────────────────────────────────────── #}
+        <tr>
+          <td class="label-cell">
+            <span class="label-en">Ad Types</span>
+            <span class="label-th">ประเภทโฆษณา</span>
+          </td>
+          <td class="value-cell">
+            {% if comp.ad_types %}
+              {{ comp.ad_types | join(', ') }}
+            {% else %}
+              —
+            {% endif %}
+          </td>
+        </tr>
+
+        {# ── Row: Main Promotions ──────────────────────────────────────── #}
+        <tr>
+          <td class="label-cell">
+            <span class="label-en">Main Promotions</span>
+            <span class="label-th">โปรโมชั่นหลัก</span>
+          </td>
+          <td class="value-cell">{{ comp.main_promotions | default('—') }}</td>
+        </tr>
+
+        {# ── Row: Marketing Strategy ───────────────────────────────────── #}
+        <tr>
+          <td class="label-cell">
+            <span class="label-en">Marketing Strategy</span>
+            <span class="label-th">กลยุทธ์การตลาด</span>
+          </td>
+          <td class="value-cell">{{ comp.marketing_strategy | default('—') }}</td>
+        </tr>
+
+        {# ── Row: Key USP ──────────────────────────────────────────────── #}
+        <tr>
+          <td class="label-cell">
+            <span class="label-en">Key USP</span>
+            <span class="label-th">จุดขายหลัก</span>
+          </td>
+          <td class="value-cell">{{ comp.key_usp | default('—') }}</td>
+        </tr>
+
+        {# ── Row: Ad Formats ───────────────────────────────────────────── #}
+        <tr>
+          <td class="label-cell">
+            <span class="label-en">Ad Formats</span>
+            <span class="label-th">รูปแบบโฆษณา</span>
+          </td>
+          <td class="value-cell">
+            {% if comp.ad_formats %}
+              {{ comp.ad_formats | join(', ') }}
+            {% else %}
+              —
+            {% endif %}
+          </td>
+        </tr>
+
+        {# ═══ NEW ENHANCED ROWS ═══════════════════════════════════════════ #}
+
+        {# ── Row: Ad Variations ────────────────────────────────────────── #}
+        <tr>
+          <td class="label-cell">
+            <span class="label-en">Ad Variations</span>
+            <span class="label-th">หลายเวอร์ชัน</span>
+          </td>
+          <td class="value-cell">
+            {% if comp.ad_variations %}
+              {% set max_var = comp.ad_variations.values() | max %}
+              {% for campaign, count in comp.ad_variations.items() %}
+                {{ campaign }}: {{ count }} variation{{ 's' if count != 1 else '' }}{% if not loop.last %}; {% endif %}
+              {% endfor %}
+              {% if max_var >= 3 %}
+                {% for campaign, count in comp.ad_variations.items() if count >= 3 %}
+                <div class="focus-campaign">🔥 HIGH-FOCUS CAMPAIGN: {{ campaign }} ({{ count }} variations)</div>
+                {% endfor %}
+              {% endif %}
+            {% else %}
+              No multi-version ads detected
+            {% endif %}
+          </td>
+        </tr>
+
+        {# ── Row: Campaign Started ─────────────────────────────────────── #}
+        <tr>
+          <td class="label-cell">
+            <span class="label-en">Campaign Started</span>
+            <span class="label-th">เริ่มแคมเปญ</span>
+          </td>
+          <td class="value-cell">
+            {% if newest_ad_formatted %}
+              <span class="{{ newest_ad_date_class }}">{{ newest_ad_formatted }}</span>
+            {% else %}
+              <span class="text-muted">No active campaigns</span>
+            {% endif %}
+          </td>
+        </tr>
+
+        {# ── Row: Target Segments ──────────────────────────────────────── #}
+        <tr>
+          <td class="label-cell">
+            <span class="label-en">Target Segments</span>
+            <span class="label-th">กลุ่มเป้าหมาย</span>
+          </td>
+          <td class="value-cell">
+            {% if comp.target_segments %}
+              {{ comp.target_segments | join(', ') }}
+            {% else %}
+              Not identified
+            {% endif %}
+          </td>
+        </tr>
+
+        {# ── Row: Competitor Health Score ───────────────────────────────── #}
+        <tr>
+          <td class="label-cell">
+            <span class="label-en">Competitor Health Score</span>
+            <span class="label-th">คะแนนสุขภาพ</span>
+          </td>
+          <td class="value-cell">
+            <span class="fw-700 {{ layout.score_class(health_score) }}">
+              {{ health_score | int }}/100
+            </span>
+            {{ layout.mini_progress(health_score) }}
+          </td>
+        </tr>
+
+        {# ── Row: Threat Level ─────────────────────────────────────────── #}
+        <tr>
+          <td class="label-cell">
+            <span class="label-en">Threat Level</span>
+            <span class="label-th">ระดับภัยคุกคาม</span>
+          </td>
+          <td class="value-cell">
+            {{ layout.threat_level_badge(threat_level) }}
+            {% if threat_justification %}
+              <span class="fs-9 text-secondary" style="margin-left: 8px;">{{ threat_justification }}</span>
+            {% endif %}
+          </td>
+        </tr>
+
+        {# ── Row: Pricing Intelligence ─────────────────────────────────── #}
+        <tr>
+          <td class="label-cell">
+            <span class="label-en">Pricing Intelligence</span>
+            <span class="label-th">ข้อมูลราคา</span>
+          </td>
+          <td class="value-cell">
+            {% if comp.pricing_info %}
+              {{ comp.pricing_info }}
+            {% else %}
+              <span class="text-muted">Not disclosed in ads</span>
+            {% endif %}
+          </td>
+        </tr>
+
+        {# ── Row: CTA Analysis ─────────────────────────────────────────── #}
+        <tr>
+          <td class="label-cell">
+            <span class="label-en">CTA Analysis</span>
+            <span class="label-th">การเรียกร้องให้ดำเนินการ</span>
+          </td>
+          <td class="value-cell">
+            {% if cta_formatted %}
+              {{ cta_formatted }}
+            {% else %}
+              <span class="text-muted">No CTA data available</span>
+            {% endif %}
+          </td>
+        </tr>
+
+        {# ── Row: Language Split ───────────────────────────────────────── #}
+        <tr>
+          <td class="label-cell">
+            <span class="label-en">Language Split</span>
+            <span class="label-th">ภาษาที่ใช้</span>
+          </td>
+          <td class="value-cell">{{ comp.language_split | default('Not analyzed') }}</td>
+        </tr>
+
+        {# ── Row: Estimated Budget Tier ────────────────────────────────── #}
+        <tr>
+          <td class="label-cell">
+            <span class="label-en">Estimated Budget Tier</span>
+            <span class="label-th">ประมาณการงบ</span>
+          </td>
+          <td class="value-cell">
+            {{ layout.budget_tier(comp.total_active_ads) }}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+  </div>
+
+  {# ── Page Footer ─────────────────────────────────────────────────────── #}
+  <div class="page-footer">
+    <span class="page-footer-brand">{{ brand_name }}</span>
+    <span class="page-footer-page">Confidential | Page {{ page_num }}</span>
+  </div>
+
+</div>

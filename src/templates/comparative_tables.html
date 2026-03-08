@@ -1,0 +1,90 @@
+{% import 'base_layout.html' as layout %}
+
+{% set body_content %}
+<style>
+  .comparative-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10mm;
+    font-size: 10px;
+  }
+  .comparative-table th, .comparative-table td {
+    padding: 10px;
+    border: 1px solid var(--c-border);
+    vertical-align: top;
+  }
+  .comparative-table th {
+    background-color: var(--c-bg-section);
+    font-weight: 700;
+    color: var(--c-primary);
+    text-transform: uppercase;
+    text-align: left;
+  }
+  .comparative-table td {
+    background-color: var(--c-bg-card);
+  }
+  .comparative-table .col-comp {
+    width: 25%;
+    font-weight: 600;
+  }
+  .comparative-table .col-str {
+    width: 30%;
+  }
+  .comparative-table .col-weak {
+    width: 30%;
+  }
+  .comparative-table .col-threat {
+    width: 15%;
+    text-align: center;
+  }
+</style>
+
+{{ layout.section_title("Comparative Analysis", "Strengths, Weaknesses, and Threat Levels") }}
+
+<table class="comparative-table">
+  <thead>
+    <tr>
+      <th class="col-comp">Competitor</th>
+      <th class="col-str">Strengths</th>
+      <th class="col-weak">Weaknesses</th>
+      <th class="col-threat">Threat Level</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for comp in competitors %}
+    <tr>
+      <td class="col-comp">{{ comp.name }}</td>
+      <td class="col-str">
+        <ul style="padding-left: 15px; margin: 0;">
+          {% for str in comp.strengths | default([]) %}
+          <li>{{ str }}</li>
+          {% else %}
+          <li class="text-muted">No specific strengths identified.</li>
+          {% endfor %}
+        </ul>
+      </td>
+      <td class="col-weak">
+        <ul style="padding-left: 15px; margin: 0;">
+          {% for wk in comp.weaknesses | default([]) %}
+          <li>{{ wk }}</li>
+          {% else %}
+          <li class="text-muted">No specific weaknesses identified.</li>
+          {% endfor %}
+        </ul>
+      </td>
+      <td class="col-threat">
+        {{ layout.threat_level_badge(comp.threat_level | default('medium')) }}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endset %}
+
+{{ layout.page(
+    brand_name=brand_name,
+    date_en=date_en,
+    date_th=date_th,
+    page_num=page_offset | default(1),
+    content=body_content
+) }}

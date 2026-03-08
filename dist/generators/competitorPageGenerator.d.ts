@@ -1,0 +1,3 @@
+export declare function generateCompetitorPage(competitor: any, healthScore?: number, threatLevel?: string, compNumber?: number, pageNum?: number, brandName?: string, dateEn?: string, dateTh?: string): string;
+export declare function generateAllCompetitorPages(competitors: any[], healthScores?: Record<string, number>, threatLevels?: Record<string, string>, startPage?: number, brandName?: string, dateEn?: string, dateTh?: string): string;
+//# sourceMappingURL=competitorPageGenerator.d.ts.map

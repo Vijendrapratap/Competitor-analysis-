@@ -1,0 +1,20 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 14
+    },
+    "auditLog": "d:\\Autonoetic_edge\\Competitor analysis\\.claude\\worktrees\\wonderful-maxwell\\logs\\.4336acd44ecafba523cf5226d5792695f0c2d724-audit.json",
+    "files": [
+        {
+            "date": 1772728417239,
+            "name": "d:\\Autonoetic_edge\\Competitor analysis\\.claude\\worktrees\\wonderful-maxwell\\logs\\app-2026-03-05.log",
+            "hash": "cb03d61d49bc954c5dc92f28fbd352a14896fa6e7d204c3f8c7f6308f448f5f6"
+        },
+        {
+            "date": 1772771634511,
+            "name": "d:\\Autonoetic_edge\\Competitor analysis\\.claude\\worktrees\\wonderful-maxwell\\logs\\app-2026-03-06.log",
+            "hash": "7bfdaf0631c45370e99d7cdd3a93bc509b6b6db0b019809c64203cf04a0840c7"
+        }
+    ],
+    "hashType": "sha256"
+}

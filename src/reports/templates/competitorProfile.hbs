@@ -1,0 +1,138 @@
+{{#each competitorProfiles}}
+<div class="page-break">
+  <h2>{{name}} — Competitor Profile / โปรไฟล์คู่แข่ง</h2>
+
+  {{!-- Overview Cards --}}
+  <div class="grid-3 mt-2">
+    <div class="card card-navy text-center no-break">
+      <h4 style="color:var(--gold);">Health Score</h4>
+      <p style="font-size:1.8rem;margin:.2rem 0;">{{round totalScore 0}}</p>
+      <small style="color:var(--gray-300);">
+        <span class="trend-{{lowercase trend}}">{{trendArrow trend}} {{trend}}</span>
+      </small>
+    </div>
+    <div class="card text-center no-break">
+      <h4>Rank / อันดับ</h4>
+      <p style="font-size:1.8rem;margin:.2rem 0;color:var(--navy);">#{{rank}}</p>
+      <small>of {{../marketOverview.totalCompetitors}} competitors</small>
+    </div>
+    <div class="card text-center no-break">
+      <h4>Category / หมวดหมู่</h4>
+      <p style="font-size:1rem;margin:.3rem 0;color:var(--navy);font-weight:600;">{{category}}</p>
+      <small class="thai">{{pricingTier}}</small>
+    </div>
+  </div>
+
+  {{!-- Score Details --}}
+  <div class="grid-2 mt-1">
+    <div class="card no-break">
+      <h4>Paid Score / คะแนนโฆษณา: {{round paidScore 0}}/100</h4>
+      <div class="progress-bar mb-1">
+        <div class="progress-fill" style="width:{{paidScore}}%;background:var(--navy);"></div>
+      </div>
+      <div style="font-size:.85rem;">
+        <div>Active Ads: <strong>{{activeAds}}</strong></div>
+        <div>Ad Formats: <strong>{{adFormats}}</strong></div>
+        <div>Newest Ad: <strong>{{formatDate newestAdDate}}</strong></div>
+        <div>Strategy: <strong>{{strategyEn}}</strong></div>
+      </div>
+    </div>
+    <div class="card no-break">
+      <h4>Organic Score / คะแนนออร์แกนิก: {{round organicScore 0}}/100</h4>
+      <div class="progress-bar mb-1">
+        <div class="progress-fill" style="width:{{organicScore}}%;background:var(--green);"></div>
+      </div>
+      <div style="font-size:.85rem;">
+        <div>Followers: <strong>{{formatNumber followers}}</strong></div>
+        <div>Engagement Rate: <strong>{{round engagementRate 2}}%</strong></div>
+        <div>Posts (30d): <strong>{{postsLast30d}}</strong></div>
+        <div>Rating: <strong>{{rating}}/5</strong> ({{reviewCount}} reviews)</div>
+      </div>
+    </div>
+  </div>
+
+  {{!-- Strategy & Positioning --}}
+  <div class="section mt-1">
+    <h3>Strategy & Positioning / กลยุทธ์และตำแหน่ง</h3>
+    <div class="card no-break">
+      <div class="grid-2">
+        <div>
+          <small>Marketing Strategy</small>
+          <p style="font-weight:600;">{{strategyEn}}</p>
+          <p class="thai">{{strategyTh}}</p>
+        </div>
+        <div>
+          <small>Key USP</small>
+          <p style="font-weight:600;">{{uspEn}}</p>
+          <p class="thai">{{uspTh}}</p>
+        </div>
+      </div>
+      {{#if targetSegments.length}}
+      <div class="mt-1">
+        <small>Target Segments:</small>
+        {{#each targetSegments}}
+        <span class="badge badge-info" style="margin:2px;">{{this}}</span>
+        {{/each}}
+      </div>
+      {{/if}}
+      {{#if threatLevel}}
+      <div class="mt-1">
+        <small>Threat Level:</small>
+        <span class="badge {{threatBadgeClass threatLevel}}">{{threatLevel}}</span>
+        {{#if threatReason}}<small> — {{threatReason}}</small>{{/if}}
+      </div>
+      {{/if}}
+    </div>
+  </div>
+
+  {{!-- Pricing --}}
+  {{#if pricing}}
+  <div class="section">
+    <h3>Pricing Intelligence / ข้อมูลราคา</h3>
+    <div class="card no-break">
+      <div class="grid-3" style="text-align:center;">
+        <div>
+          <small>Min Price</small>
+          <p style="font-size:1.2rem;font-weight:700;color:var(--green);">{{formatCurrency pricing.minPrice pricing.currency}}</p>
+        </div>
+        <div>
+          <small>Avg Price</small>
+          <p style="font-size:1.2rem;font-weight:700;color:var(--navy);">{{formatCurrency pricing.avgPrice pricing.currency}}</p>
+        </div>
+        <div>
+          <small>Max Price</small>
+          <p style="font-size:1.2rem;font-weight:700;color:var(--red);">{{formatCurrency pricing.maxPrice pricing.currency}}</p>
+        </div>
+      </div>
+      {{#if pricing.hasPromotion}}
+      <div class="mt-1" style="background:var(--yellow-bg);padding:.4rem .8rem;border-radius:4px;">
+        <small style="color:var(--gold-dark);">🏷️ Active Promotion: {{pricing.promotionDetail}}</small>
+      </div>
+      {{/if}}
+    </div>
+  </div>
+  {{/if}}
+
+  {{!-- Top Performing Content --}}
+  {{#if topPosts.length}}
+  <div class="section">
+    <h3>Top Performing Content / เนื้อหายอดนิยม</h3>
+    {{#each topPosts}}
+    <div class="card no-break" style="font-size:.85rem;">
+      <div style="display:flex;justify-content:space-between;">
+        <span class="badge badge-info">{{postType}}</span>
+        <small>{{formatDate postedAt}}</small>
+      </div>
+      <p style="margin:.4rem 0;">{{truncate postText 150}}</p>
+      <div style="color:var(--gray-500);">
+        👍 {{formatNumber reactions}} &bull;
+        💬 {{formatNumber comments}} &bull;
+        🔄 {{formatNumber shares}}
+        {{#if videoViews}} &bull; 👁️ {{formatNumber videoViews}}{{/if}}
+      </div>
+    </div>
+    {{/each}}
+  </div>
+  {{/if}}
+</div>
+{{/each}}

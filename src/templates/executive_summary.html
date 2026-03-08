@@ -1,0 +1,235 @@
+{# ═══════════════════════════════════════════════════════════════════════════
+   Executive Summary Template — Pages 1-3
+   Page 1: Executive Brief (1-page decision doc)
+   Page 2: KPI Dashboard (4 KPI cards + 2 charts)
+   Page 3: Top 10 Rankings & Strategy Frequency
+   ═══════════════════════════════════════════════════════════════════════════ #}
+
+{% import 'base_layout.html' as layout %}
+
+{# ── PAGE 1: Executive Brief ─────────────────────────────────────────────── #}
+{% call(content) layout.page(
+    brand_name=brand_name,
+    date_en=date_en,
+    date_th=date_th,
+    page_num=1,
+    total_pages=total_pages,
+    is_first=true
+) %}
+{% endcall %}
+
+{# Since macros can't use call blocks in WeasyPrint/Jinja2 the same way,
+   we render pages directly: #}
+
+<div class="page">
+  <div class="page-header">
+    <span class="page-header-brand">{{ brand_name }}</span>
+    <span class="page-header-date">{{ date_en }} | {{ date_th }}</span>
+  </div>
+
+  <div class="page-content">
+    <div class="exec-brief-box">
+      {# ── Header ─────────────────────────────────────────────────────────── #}
+      <div class="exec-brief-header">
+        COMPETITOR INTELLIGENCE BRIEF | {{ report_month_year }}
+      </div>
+      <div class="exec-brief-market">{{ market_name | default('Hua Hin Luxury Resort Market') }}</div>
+
+      <hr class="exec-brief-separator">
+
+      {# ── Status Rows ────────────────────────────────────────────────────── #}
+      <div class="exec-brief-row">
+        <span class="exec-brief-label">MARKET STATUS:</span>
+        <span class="exec-brief-value">
+          {{ layout.market_status(market_status) }}
+          {% if ad_activity_change %}({{ ad_activity_change }}){% endif %}
+        </span>
+      </div>
+
+      <div class="exec-brief-row">
+        <span class="exec-brief-label">YOUR POSITION:</span>
+        <span class="exec-brief-value">
+          {% if client_rank %}
+            #{{ client_rank }} of {{ total_competitors }}
+            ({{ 'above' if client_above_avg else 'below' }} average)
+          {% else %}
+            Not tracked
+          {% endif %}
+        </span>
+      </div>
+
+      <div class="exec-brief-row">
+        <span class="exec-brief-label">THREAT LEVEL:</span>
+        <span class="exec-brief-value">
+          {{ layout.threat_level_badge(threat_level) }}
+        </span>
+      </div>
+
+      <hr class="exec-brief-separator">
+
+      {# ── Top 3 Things to Know ───────────────────────────────────────────── #}
+      <div class="exec-brief-section-title">TOP 3 THINGS TO KNOW:</div>
+      {% for insight in top_3_insights %}
+      <div class="exec-brief-insight">
+        <strong>{{ loop.index }}.</strong> {{ insight }}
+      </div>
+      {% endfor %}
+
+      <hr class="exec-brief-separator">
+
+      {# ── Recommended Actions ────────────────────────────────────────────── #}
+      <div class="exec-brief-section-title">RECOMMENDED ACTIONS THIS WEEK:</div>
+      {% for action in recommended_actions %}
+      <div class="exec-brief-action">
+        <span class="checkbox"></span>{{ action }}
+      </div>
+      {% endfor %}
+
+      <hr class="exec-brief-separator">
+
+      {# ── Opportunity & Threat ───────────────────────────────────────────── #}
+      <div style="display: flex;">
+        <div style="width: 48%; margin-right: 4%;">
+          <div class="exec-brief-section-title">BIGGEST OPPORTUNITY:</div>
+          <div class="exec-brief-opportunity">{{ biggest_opportunity }}</div>
+        </div>
+        <div style="width: 48%;">
+          <div class="exec-brief-section-title">BIGGEST THREAT:</div>
+          <div class="exec-brief-threat">{{ biggest_threat }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-footer">
+    <span class="page-footer-brand">{{ brand_name }}</span>
+    <span class="page-footer-page">Confidential | Page 1</span>
+  </div>
+</div>
+
+
+{# ── PAGE 2: KPI Dashboard ──────────────────────────────────────────────── #}
+<div class="page" style="page-break-before: always;">
+  <div class="page-header">
+    <span class="page-header-brand">{{ brand_name }}</span>
+    <span class="page-header-date">{{ date_en }} | {{ date_th }}</span>
+  </div>
+
+  <div class="page-content">
+    {{ layout.section_title("Market Overview Dashboard", "Key Performance Indicators") }}
+
+    {# ── 4 KPI Cards ──────────────────────────────────────────────────────── #}
+    <div class="kpi-grid">
+      {{ layout.kpi_card(total_resorts, "Total Resorts Analyzed", "Tracked in this report") }}
+      {{ layout.kpi_card(
+          "%d / %d%%" | format(active_advertisers, active_pct),
+          "Active Advertisers",
+          "Currently running ads"
+      ) }}
+      {{ layout.kpi_card(total_active_ads, "Total Active Ads", "Across all competitors") }}
+      {{ layout.kpi_card("%.1f" | format(avg_ads_per_resort), "Average Ads per Resort", "Market benchmark") }}
+    </div>
+
+    {# ── Two Charts ───────────────────────────────────────────────────────── #}
+    <div class="chart-grid-2 mt-16">
+      <div class="chart-col">
+        <div class="chart-title">Market Participation</div>
+        <div class="text-center">
+          {{ pie_chart_svg | safe }}
+        </div>
+      </div>
+      <div class="chart-col">
+        <div class="chart-title">Ad Volume Distribution by Tier</div>
+        <div class="text-center">
+          {{ bar_chart_svg | safe }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-footer">
+    <span class="page-footer-brand">{{ brand_name }}</span>
+    <span class="page-footer-page">Confidential | Page 2</span>
+  </div>
+</div>
+
+
+{# ── PAGE 3: Top 10 Rankings & Strategy Frequency ────────────────────────── #}
+<div class="page" style="page-break-before: always;">
+  <div class="page-header">
+    <span class="page-header-brand">{{ brand_name }}</span>
+    <span class="page-header-date">{{ date_en }} | {{ date_th }}</span>
+  </div>
+
+  <div class="page-content">
+    {{ layout.section_title("Top Advertisers & Strategy Analysis", "Ranked by Ad Count") }}
+
+    {# ── Top 10 Table ─────────────────────────────────────────────────────── #}
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th style="width: 40px;">#</th>
+          <th>Competitor</th>
+          <th style="width: 80px;">Active Ads</th>
+          <th style="width: 90px;">Market Share</th>
+          <th style="width: 120px;">Primary Strategy</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for comp in top_10_advertisers %}
+        <tr{% if comp.is_customer %} class="customer-row"{% endif %}>
+          <td class="text-center fw-700">{{ loop.index }}</td>
+          <td class="fw-600">{{ comp.name }}</td>
+          <td class="text-center">
+            {{ layout.ad_badge(comp.ad_count, comp.is_new, comp.is_leader) }}
+          </td>
+          <td class="text-center">{{ "%.1f%%" | format(comp.market_share) }}</td>
+          <td class="fs-10">{{ comp.strategy | default('—') }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    {# ── Market Leader Profile ────────────────────────────────────────────── #}
+    {% if market_leader %}
+    <div class="subsection-title mt-12">Market Leader Profile</div>
+    <div class="card card-blue-accent mb-12">
+      <div class="flex-between">
+        <div>
+          <div class="fs-14 fw-700 text-primary">{{ market_leader.name }}</div>
+          <div class="fs-10 text-secondary mt-4">
+            {{ market_leader.ad_count }} active ads | {{ "%.1f%%" | format(market_leader.market_share) }} market share
+          </div>
+        </div>
+        <span class="badge badge-leader">MARKET LEADER</span>
+      </div>
+      <div class="fs-11 text-body mt-8">{{ market_leader.strategy_summary }}</div>
+    </div>
+    {% endif %}
+
+    {# ── Top 3 Challengers ────────────────────────────────────────────────── #}
+    {% if challengers %}
+    <div class="subsection-title">Top 3 Challengers</div>
+    <div style="display: flex;">
+      {% for ch in challengers[:3] %}
+      <div class="card" style="width: 31%; margin-right: 3.5%; padding: 10px;">
+        <div class="fs-12 fw-700 text-primary">{{ ch.name }}</div>
+        <div class="fs-10 text-secondary">{{ ch.ad_count }} ads</div>
+        <div class="fs-10 text-body mt-4">{{ ch.strategy | default('—') }}</div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {# ── Strategy Frequency Chart ─────────────────────────────────────────── #}
+    {% if strategy_chart_svg %}
+    <div class="subsection-title mt-12">Strategy Frequency Across Market</div>
+    {{ strategy_chart_svg | safe }}
+    {% endif %}
+  </div>
+
+  <div class="page-footer">
+    <span class="page-footer-brand">{{ brand_name }}</span>
+    <span class="page-footer-page">Confidential | Page 3</span>
+  </div>
+</div>

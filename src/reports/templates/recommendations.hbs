@@ -1,0 +1,160 @@
+<div class="page-break">
+  <h2>Recommendations / คำแนะนำ</h2>
+
+  {{!-- Summary --}}
+  <div class="card card-navy mt-2 no-break">
+    <div class="grid-3 text-center">
+      <div>
+        <small style="color:var(--gray-300);">Urgent (7 days) / เร่งด่วน</small>
+        <p style="font-size:1.4rem;color:var(--red-bg);">{{urgentCount}}</p>
+      </div>
+      <div>
+        <small style="color:var(--gray-300);">Important (30 days) / สำคัญ</small>
+        <p style="font-size:1.4rem;color:var(--gold-light);">{{importantCount}}</p>
+      </div>
+      <div>
+        <small style="color:var(--gray-300);">Consider / พิจารณา</small>
+        <p style="font-size:1.4rem;color:var(--white);">{{considerCount}}</p>
+      </div>
+    </div>
+  </div>
+
+  {{!-- Urgent Recommendations --}}
+  {{#if urgentRecs.length}}
+  <div class="section mt-2">
+    <h3 style="color:var(--red);">🚨 Urgent — Act Within 7 Days / ดำเนินการภายใน 7 วัน</h3>
+    {{#each urgentRecs}}
+    <div class="rec-card rec-urgent no-break">
+      <div style="display:flex;justify-content:space-between;align-items:start;">
+        <strong>{{@index1}}. {{title}}</strong>
+        {{#if estimatedImpact}}
+        <span class="badge badge-critical">Impact: {{estimatedImpact}}</span>
+        {{/if}}
+      </div>
+      <p style="margin:.4rem 0;font-size:.9rem;">{{description}}</p>
+      {{#if actionItems.length}}
+      <ul>
+        {{#each actionItems}}
+        <li>{{this}}</li>
+        {{/each}}
+      </ul>
+      {{/if}}
+      {{#if relatedCompetitors.length}}
+      <small style="color:var(--gray-500);">Related competitors: {{join relatedCompetitors ", "}}</small>
+      {{/if}}
+    </div>
+    {{/each}}
+  </div>
+  {{/if}}
+
+  {{!-- Important Recommendations --}}
+  {{#if importantRecs.length}}
+  <div class="section mt-1">
+    <h3 style="color:var(--gold-dark);">⚡ Important — Act Within 30 Days / ดำเนินการภายใน 30 วัน</h3>
+    {{#each importantRecs}}
+    <div class="rec-card rec-important no-break">
+      <div style="display:flex;justify-content:space-between;align-items:start;">
+        <strong>{{@index1}}. {{title}}</strong>
+        {{#if estimatedImpact}}
+        <span class="badge badge-warning">Impact: {{estimatedImpact}}</span>
+        {{/if}}
+      </div>
+      <p style="margin:.4rem 0;font-size:.9rem;">{{description}}</p>
+      {{#if actionItems.length}}
+      <ul>
+        {{#each actionItems}}
+        <li>{{this}}</li>
+        {{/each}}
+      </ul>
+      {{/if}}
+      {{#if relatedCompetitors.length}}
+      <small style="color:var(--gray-500);">Related competitors: {{join relatedCompetitors ", "}}</small>
+      {{/if}}
+    </div>
+    {{/each}}
+  </div>
+  {{/if}}
+
+  {{!-- Consider Recommendations --}}
+  {{#if considerRecs.length}}
+  <div class="section mt-1">
+    <h3>💡 Strategic Considerations / ข้อพิจารณาเชิงกลยุทธ์</h3>
+    {{#each considerRecs}}
+    <div class="rec-card rec-consider no-break">
+      <div style="display:flex;justify-content:space-between;align-items:start;">
+        <strong>{{@index1}}. {{title}}</strong>
+        {{#if estimatedImpact}}
+        <span class="badge badge-info">Impact: {{estimatedImpact}}</span>
+        {{/if}}
+      </div>
+      <p style="margin:.4rem 0;font-size:.9rem;">{{description}}</p>
+      {{#if actionItems.length}}
+      <ul>
+        {{#each actionItems}}
+        <li>{{this}}</li>
+        {{/each}}
+      </ul>
+      {{/if}}
+    </div>
+    {{/each}}
+  </div>
+  {{/if}}
+
+  {{!-- Trends Section --}}
+  {{#if trendData}}
+  <div class="section mt-2">
+    <h3>Market Trends / แนวโน้มตลาด</h3>
+    <div class="chart-container">
+      {{{charts.trendLines}}}
+    </div>
+    <div class="grid-2 mt-1">
+      {{#each trendHighlights}}
+      <div class="card no-break">
+        <div style="display:flex;justify-content:space-between;">
+          <strong>{{keyword}}</strong>
+          <span class="trend-{{lowercase trend}}">{{trendArrow trend}} {{round changePct 0}}%</span>
+        </div>
+        <div class="progress-bar mt-1">
+          <div class="progress-fill" style="width:{{currentValue}}%;background:var(--navy);"></div>
+        </div>
+        <small>Current interest: {{currentValue}}/100</small>
+      </div>
+      {{/each}}
+    </div>
+  </div>
+  {{/if}}
+
+  {{!-- Posting Frequency --}}
+  {{#if charts.postingFrequency}}
+  <div class="section mt-2">
+    <h3>Posting Frequency Comparison / เปรียบเทียบความถี่การโพสต์</h3>
+    <div class="chart-container">
+      {{{charts.postingFrequency}}}
+    </div>
+  </div>
+  {{/if}}
+</div>
+
+{{!-- Disclaimer / Footer --}}
+<div class="page-break" style="display:flex;flex-direction:column;justify-content:flex-end;min-height:40vh;">
+  <div class="card" style="background:var(--gray-50);border:1px solid var(--gray-200);">
+    <h4>Disclaimer / ข้อจำกัดความรับผิดชอบ</h4>
+    <p style="font-size:.8rem;color:var(--gray-500);">
+      This report is generated automatically based on publicly available data from Meta Ad Library,
+      Facebook public pages, and Google Trends. Data accuracy depends on source availability and
+      may not reflect the complete marketing activity of tracked competitors. Health scores and
+      recommendations are algorithmic assessments and should be used as directional guidance
+      alongside professional judgment.
+    </p>
+    <p class="thai" style="font-size:.8rem;">
+      รายงานนี้สร้างขึ้นโดยอัตโนมัติจากข้อมูลสาธารณะจาก Meta Ad Library, Facebook และ Google Trends
+      ความถูกต้องของข้อมูลขึ้นอยู่กับความพร้อมใช้งานของแหล่งข้อมูล คะแนนสุขภาพและคำแนะนำเป็นการประเมิน
+      จากอัลกอริทึม ควรใช้เป็นแนวทางประกอบกับวิจารณญาณของผู้เชี่ยวชาญ
+    </p>
+  </div>
+  <div class="report-footer">
+    <span>Generated {{formatDateTime generatedAt}}</span>
+    <span>Competitor Intelligence System v1.0</span>
+    <span>CONFIDENTIAL / เอกสารลับ</span>
+  </div>
+</div>

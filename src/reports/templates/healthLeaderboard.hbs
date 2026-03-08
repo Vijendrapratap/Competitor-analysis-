@@ -1,0 +1,118 @@
+<div class="page-break">
+  <h2>Health Score Leaderboard / ตารางคะแนนสุขภาพ</h2>
+
+  {{!-- Leaderboard table --}}
+  <table>
+    <thead>
+      <tr>
+        <th style="width:3%;">#</th>
+        <th style="width:22%;">Competitor / คู่แข่ง</th>
+        <th style="width:10%;">Score</th>
+        <th style="width:10%;">Paid</th>
+        <th style="width:10%;">Organic</th>
+        <th style="width:10%;">Trend</th>
+        <th style="width:15%;">Strategy</th>
+        <th style="width:20%;">Score Bar</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each leaderboard}}
+      <tr class="{{#if isCustomer}}highlight{{/if}} no-break">
+        <td>{{rank}}</td>
+        <td>
+          <strong>{{name}}</strong>
+          {{#if isCustomer}}<span class="badge badge-info">YOU</span>{{/if}}
+          <br/><small class="thai">{{category}}</small>
+        </td>
+        <td>
+          <span class="score {{scoreClass totalScore}}">{{round totalScore 0}}</span>
+        </td>
+        <td>{{round paidScore 0}}</td>
+        <td>{{round organicScore 0}}</td>
+        <td>
+          <span class="trend-{{lowercase trend}}">{{trendArrow trend}} {{trend}}</span>
+        </td>
+        <td><small>{{strategyEn}}</small></td>
+        <td>
+          <div class="progress-bar" style="width:100%;">
+            <div class="progress-fill" style="width:{{totalScore}}%;background:{{scoreColor totalScore}};"></div>
+          </div>
+        </td>
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
+
+  {{!-- Score Distribution --}}
+  <div class="grid-2 mt-2">
+    <div class="section">
+      <h3>Score Distribution / การกระจายคะแนน</h3>
+      <div class="chart-container">
+        {{{charts.healthScoreBars}}}
+      </div>
+    </div>
+    <div class="section">
+      <h3>Market Summary / สรุปตลาด</h3>
+      <div class="card card-navy">
+        <div class="grid-2">
+          <div>
+            <small style="color:var(--gray-300);">Average Score / คะแนนเฉลี่ย</small>
+            <p style="font-size:1.4rem;margin:.2rem 0;">{{round marketOverview.avgHealthScore 1}}</p>
+          </div>
+          <div>
+            <small style="color:var(--gray-300);">Median Score / มัธยฐาน</small>
+            <p style="font-size:1.4rem;margin:.2rem 0;">{{round marketOverview.medianHealthScore 1}}</p>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <small>Strong (70+)</small>
+        <span style="float:right;font-weight:700;color:var(--green);">{{marketOverview.strongCount}}</span>
+        <div class="progress-bar mt-1">
+          <div class="progress-fill" style="width:{{pct marketOverview.strongCount marketOverview.totalCompetitors}}%;background:var(--green);"></div>
+        </div>
+      </div>
+      <div class="card">
+        <small>Average (40–70)</small>
+        <span style="float:right;font-weight:700;color:var(--gold);">{{marketOverview.averageCount}}</span>
+        <div class="progress-bar mt-1">
+          <div class="progress-fill" style="width:{{pct marketOverview.averageCount marketOverview.totalCompetitors}}%;background:var(--gold);"></div>
+        </div>
+      </div>
+      <div class="card">
+        <small>Weak (&lt;40)</small>
+        <span style="float:right;font-weight:700;color:var(--red);">{{marketOverview.weakCount}}</span>
+        <div class="progress-bar mt-1">
+          <div class="progress-fill" style="width:{{pct marketOverview.weakCount marketOverview.totalCompetitors}}%;background:var(--red);"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {{!-- Biggest Movers --}}
+  <div class="section mt-1">
+    <h3>Biggest Movers / ผู้เปลี่ยนแปลงมากที่สุด</h3>
+    <div class="grid-2">
+      <div>
+        <h4 style="color:var(--green);">▲ Biggest Risers</h4>
+        {{#each biggestRisers}}
+        <div class="card no-break" style="border-left:3px solid var(--green);">
+          <strong>{{name}}</strong>
+          <span style="float:right;color:var(--green);font-weight:700;">+{{round change 1}}</span>
+          <br/><small>{{round previousScore 0}} → {{round currentScore 0}}</small>
+        </div>
+        {{/each}}
+      </div>
+      <div>
+        <h4 style="color:var(--red);">▼ Biggest Fallers</h4>
+        {{#each biggestFallers}}
+        <div class="card no-break" style="border-left:3px solid var(--red);">
+          <strong>{{name}}</strong>
+          <span style="float:right;color:var(--red);font-weight:700;">{{round change 1}}</span>
+          <br/><small>{{round previousScore 0}} → {{round currentScore 0}}</small>
+        </div>
+        {{/each}}
+      </div>
+    </div>
+  </div>
+</div>

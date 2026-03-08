@@ -1,0 +1,96 @@
+<div class="page-break">
+  <h2>Share of Voice Analysis / วิเคราะห์ส่วนแบ่งเสียง</h2>
+
+  {{!-- SOV Pie Chart --}}
+  <div class="grid-2 mt-2">
+    <div class="chart-container">
+      <h3>Ad Share of Voice / ส่วนแบ่งโฆษณา</h3>
+      {{{charts.shareOfVoicePie}}}
+    </div>
+    <div>
+      <h3>Top Advertisers / ผู้โฆษณารายใหญ่</h3>
+      {{#each topAdvertisers}}
+      <div class="card no-break" style="padding:.6rem 1rem;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <strong>{{name}}</strong>
+            {{#if isCustomer}}<span class="badge badge-info">YOU</span>{{/if}}
+          </div>
+          <div style="text-align:right;">
+            <span style="font-weight:700;color:var(--navy);">{{activeAds}}</span> ads
+            <br/><small>{{round sharePercent 1}}% share</small>
+          </div>
+        </div>
+        <div class="progress-bar mt-1">
+          <div class="progress-fill" style="width:{{sharePercent}}%;background:var(--navy);"></div>
+        </div>
+      </div>
+      {{/each}}
+    </div>
+  </div>
+
+  {{!-- Ad Format Breakdown --}}
+  <div class="section mt-2">
+    <h3>Ad Format Distribution / การกระจายรูปแบบโฆษณา</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Competitor</th>
+          <th>Image</th>
+          <th>Video</th>
+          <th>Carousel</th>
+          <th>Other</th>
+          <th>Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each adFormatBreakdown}}
+        <tr class="{{#if isCustomer}}highlight{{/if}} no-break">
+          <td>
+            <strong>{{name}}</strong>
+            {{#if isCustomer}}<span class="badge badge-info">YOU</span>{{/if}}
+          </td>
+          <td>{{imageCount}} <small>({{round imagePct 0}}%)</small></td>
+          <td>{{videoCount}} <small>({{round videoPct 0}}%)</small></td>
+          <td>{{carouselCount}} <small>({{round carouselPct 0}}%)</small></td>
+          <td>{{otherCount}}</td>
+          <td><strong>{{totalAds}}</strong></td>
+        </tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+
+  {{!-- Segment Distribution --}}
+  <div class="grid-2 mt-1">
+    <div class="section">
+      <h3>Segment Saturation / ความอิ่มตัวของกลุ่ม</h3>
+      <div class="chart-container">
+        {{{charts.segmentDistribution}}}
+      </div>
+    </div>
+    <div class="section">
+      <h3>Target Segments / กลุ่มเป้าหมาย</h3>
+      {{#each segmentSaturation}}
+      <div class="card no-break" style="padding:.5rem .8rem;">
+        <div style="display:flex;justify-content:space-between;">
+          <span>{{segmentName}}</span>
+          <span style="font-weight:600;">{{competitorCount}} competitors</span>
+        </div>
+        <div class="progress-bar mt-1">
+          <div class="progress-fill" style="width:{{saturationPct}}%;background:{{saturationColor saturationPct}};"></div>
+        </div>
+        <small>{{round saturationPct 0}}% saturated</small>
+      </div>
+      {{/each}}
+    </div>
+  </div>
+
+  {{!-- Engagement Comparison --}}
+  <div class="section mt-2">
+    <h3>Engagement Comparison / เปรียบเทียบการมีส่วนร่วม</h3>
+    <div class="chart-container">
+      {{{charts.engagementComparison}}}
+    </div>
+  </div>
+</div>

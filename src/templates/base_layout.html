@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=210mm, initial-scale=1.0">
+  <title>{{ report_title | default('Competitor Intelligence Report') }}</title>
+  <link rel="stylesheet" href="base_styles.css">
+  <style>
+    /* ── Inline overrides for WeasyPrint @page ───────────────────────────── */
+    @page {
+      size: A4;
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+
+{#
+  BASE LAYOUT — Jinja2 macro for wrapping any page content.
+
+  Usage in child templates:
+    {% import 'base_layout.html' as layout %}
+
+    {{ layout.page(
+        brand_name="UPMY SKILLS",
+        date_en="February 2026",
+        date_th="กุมภาพันธ์ 2569",
+        page_num=1,
+        total_pages=25,
+        content="<h2>Section here</h2>"
+    ) }}
+#}
+
+{# ── Page Macro ──────────────────────────────────────────────────────────── #}
+{% macro page(brand_name="UPMY SKILLS", date_en="", date_th="", page_num=1, total_pages=1, content="", is_first=false) %}
+<div class="page" {% if not is_first %}style="page-break-before: always;"{% endif %}>
+
+  {# ── Page Header Strip ─────────────────────────────────────────────────── #}
+  <div class="page-header">
+    <span class="page-header-brand">{{ brand_name }}</span>
+    <span class="page-header-date">
+      {% if date_en and date_th %}
+        {{ date_en }} | {{ date_th }}
+      {% elif date_en %}
+        {{ date_en }}
+      {% endif %}
+    </span>
+  </div>
+
+  {# ── Content Area ──────────────────────────────────────────────────────── #}
+  <div class="page-content">
+    {{ content | safe }}
+  </div>
+
+  {# ── Page Footer ───────────────────────────────────────────────────────── #}
+  <div class="page-footer">
+    <span class="page-footer-brand">{{ brand_name }}</span>
+    <span class="page-footer-page">Confidential | Page {{ page_num }}</span>
+  </div>
+
+</div>
+{% endmacro %}
+
+
+{# ── Section Title Bar Macro ─────────────────────────────────────────────── #}
+{% macro section_title(title, subtitle="") %}
+<div class="section-title-bar">
+  <span class="section-title-text">{{ title }}</span>
+  {% if subtitle %}
+  <span class="section-title-subtitle">{{ subtitle }}</span>
+  {% endif %}
+</div>
+{% endmacro %}
+
+
+{# ── Competitor Banner Macro ─────────────────────────────────────────────── #}
+{% macro competitor_banner(number, name, badge_html="") %}
+<div class="competitor-banner">
+  <div class="competitor-banner-left">
+    <span class="competitor-number">{{ "%02d." | format(number) }}</span>
+    <span class="competitor-name">{{ name }}</span>
+  </div>
+  {% if badge_html %}
+  <div>{{ badge_html | safe }}</div>
+  {% endif %}
+</div>
+{% endmacro %}
+
+
+{# ── Ad Count Badge Macro ────────────────────────────────────────────────── #}
+{% macro ad_badge(count, is_new=false, is_leader=false) %}
+{% if is_leader %}
+  <span class="badge badge-leader">MARKET LEADER — {{ count }} Ads</span>
+{% elif is_new %}
+  <span class="badge badge-new">🆕 NEW ADVERTISER — {{ count }} Ads</span>
+{% elif count >= 10 %}
+  <span class="badge badge-heavy">{{ count }} Ads</span>
+{% elif count >= 2 %}
+  <span class="badge badge-moderate">{{ count }} Ads</span>
+{% elif count == 1 %}
+  <span class="badge badge-light">{{ count }} Ad</span>
+{% else %}
+  <span class="badge badge-none">No Ads</span>
+{% endif %}
+{% endmacro %}
+
+
+{# ── Score Color Macro ───────────────────────────────────────────────────── #}
+{% macro score_class(score) %}
+{%- if score >= 70 -%}score-green{%- elif score >= 40 -%}score-amber{%- else -%}score-red{%- endif -%}
+{% endmacro %}
+
+{% macro score_bg_class(score) %}
+{%- if score >= 70 -%}score-bg-green{%- elif score >= 40 -%}score-bg-amber{%- else -%}score-bg-red{%- endif -%}
+{% endmacro %}
+
+{% macro progress_fill_class(score) %}
+{%- if score >= 70 -%}progress-bar-fill-green{%- elif score >= 40 -%}progress-bar-fill-amber{%- else -%}progress-bar-fill-red{%- endif -%}
+{% endmacro %}
+
+
+{# ── Date Freshness Macro ────────────────────────────────────────────────── #}
+{% macro date_freshness_class(days_ago) %}
+{%- if days_ago < 7 -%}date-fresh{%- elif days_ago < 30 -%}date-recent{%- else -%}date-stale{%- endif -%}
+{% endmacro %}
+
+
+{# ── Budget Tier Macro ───────────────────────────────────────────────────── #}
+{% macro budget_tier(ad_count) %}
+{% if ad_count >= 10 %}
+  <span class="budget-heavy">🔴 Heavy ($100+/day)</span>
+{% elif ad_count >= 3 %}
+  <span class="budget-moderate">🟡 Moderate ($20-100)</span>
+{% elif ad_count >= 1 %}
+  <span class="budget-light">🟢 Light (&lt;$20)</span>
+{% else %}
+  <span class="budget-none">⚫ No Spend</span>
+{% endif %}
+{% endmacro %}
+
+
+{# ── Progress Bar Macro ──────────────────────────────────────────────────── #}
+{% macro progress_bar(value, max=100) %}
+{% set pct = (value / max * 100) | round(0) | int if max > 0 else 0 %}
+<div class="progress-bar-track">
+  <div class="progress-bar-fill {{ progress_fill_class(value) }}" style="width: {{ pct }}%;"></div>
+</div>
+{% endmacro %}
+
+{% macro mini_progress(value, max=100) %}
+{% set pct = (value / max * 100) | round(0) | int if max > 0 else 0 %}
+<span class="mini-progress">
+  <span class="mini-progress-fill {{ progress_fill_class(value) }}" style="width: {{ pct }}%;"></span>
+</span>
+{% endmacro %}
+
+
+{# ── KPI Card Macro ──────────────────────────────────────────────────────── #}
+{% macro kpi_card(number, label, sub="") %}
+<div class="kpi-card card">
+  <div class="kpi-number">{{ number }}</div>
+  <div class="kpi-label">{{ label }}</div>
+  {% if sub %}
+  <div class="kpi-sub">{{ sub }}</div>
+  {% endif %}
+</div>
+{% endmacro %}
+
+
+{# ── Market Status Indicator Macro ───────────────────────────────────────── #}
+{% macro market_status(status) %}
+{% if status == "hot" %}
+  <span class="status-dot status-hot"></span><strong class="text-red">HOT</strong>
+{% elif status == "heating_up" %}
+  <span class="status-dot status-heating"></span><strong class="text-amber">HEATING UP</strong>
+{% else %}
+  <span class="status-dot status-stable"></span><strong class="text-green">STABLE</strong>
+{% endif %}
+{% endmacro %}
+
+
+{# ── Trend Arrow Macro ───────────────────────────────────────────────────── #}
+{% macro trend_arrow(trend) %}
+{% if trend == "gaining" %}
+  <span class="trend-up">↑ Gaining</span>
+{% elif trend == "stable" %}
+  <span class="trend-stable">→ Stable</span>
+{% elif trend == "declining" %}
+  <span class="trend-down">↓ Declining</span>
+{% elif trend == "dark" %}
+  <span class="trend-dark">💀 Gone Dark</span>
+{% endif %}
+{% endmacro %}
+
+
+{# ── Threat Level Macro ──────────────────────────────────────────────────── #}
+{% macro threat_level_badge(level) %}
+{% if level == "high" %}
+  <span class="badge badge-critical">🔴 HIGH</span>
+{% elif level == "medium_high" %}
+  <span class="badge badge-warning">🟠 MEDIUM-HIGH</span>
+{% elif level == "medium" %}
+  <span class="badge badge-warning">🟡 MEDIUM</span>
+{% else %}
+  <span class="badge badge-success">🟢 LOW</span>
+{% endif %}
+{% endmacro %}
+
+
+{# ── Body — child templates inject content via Jinja2 includes / extends ── #}
+{{ body | safe if body is defined else '' }}
+
+</body>
+</html>

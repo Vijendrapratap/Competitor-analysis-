@@ -1,0 +1,329 @@
+{# ═══════════════════════════════════════════════════════════════════════════
+   Intelligence Sections Template — Sections A through F
+   A: Health Score Leaderboard   (1 page)
+   B: Share of Voice             (1 page)
+   C: Recent Activity Timeline   (1 page)
+   D: Segment Targeting Analysis (1 page)
+   E: "Steal This" Playbook      (1 page)
+   F: Recommended Actions         (1 page)
+   ═══════════════════════════════════════════════════════════════════════════ #}
+
+{% import 'base_layout.html' as layout %}
+
+
+{# ── SECTION A: Health Score Leaderboard ─────────────────────────────────── #}
+<div class="page" style="page-break-before: always;">
+  <div class="page-header">
+    <span class="page-header-brand">{{ brand_name }}</span>
+    <span class="page-header-date">{{ date_en }} | {{ date_th }}</span>
+  </div>
+
+  <div class="page-content">
+    {{ layout.section_title("Competitor Health Leaderboard", "🏆 Ranked by Overall Score") }}
+
+    {% for entry in health_leaderboard %}
+    <div class="leaderboard-row{% if entry.is_customer %} customer-row{% endif %}">
+      <div class="leaderboard-rank">{{ loop.index }}</div>
+      <div class="leaderboard-name">{{ entry.name }}</div>
+      <div class="leaderboard-bar">
+        <div class="progress-bar-track">
+          <div class="progress-bar-fill {{ layout.progress_fill_class(entry.score) }}"
+               style="width: {{ entry.score | int }}%;"></div>
+        </div>
+      </div>
+      <div class="leaderboard-score {{ layout.score_class(entry.score) }}">
+        {{ entry.score | int }}/100
+      </div>
+      <div class="leaderboard-badge">
+        {% if entry.is_leader %}
+          <span class="badge badge-leader" style="font-size:9px;">MARKET LEADER</span>
+        {% elif entry.is_inactive %}
+          <span class="badge badge-none" style="font-size:9px;">INACTIVE</span>
+        {% elif entry.is_new %}
+          <span class="badge badge-new" style="font-size:9px;">NEW ENTRANT</span>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+
+    {# ── Score Breakdown Legend ──────────────────────────────────────────── #}
+    <div class="mt-12" style="display: flex;">
+      <div class="card" style="width: 48%; margin-right: 4%; padding: 10px;">
+        <div class="fs-10 fw-700 text-blue mb-4">Score Components</div>
+        <div class="fs-9 text-body">📊 Ad Volume (20%) · 🕐 Freshness (20%) · 🎨 Creative Variety (20%) · 📋 Strategy Diversity (20%) · 💬 Engagement (20%)</div>
+      </div>
+      <div class="card" style="width: 48%; padding: 10px;">
+        <div class="fs-10 fw-700 text-blue mb-4">Color Guide</div>
+        <div class="fs-9 text-body">
+          <span class="score-green fw-600">● 70-100 Strong</span> &nbsp;
+          <span class="score-amber fw-600">● 40-69 Moderate</span> &nbsp;
+          <span class="score-red fw-600">● 0-39 Weak</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-footer">
+    <span class="page-footer-brand">{{ brand_name }}</span>
+    <span class="page-footer-page">Confidential | Page {{ page_offset + 1 }}</span>
+  </div>
+</div>
+
+
+{# ── SECTION B: Share of Voice ───────────────────────────────────────────── #}
+<div class="page" style="page-break-before: always;">
+  <div class="page-header">
+    <span class="page-header-brand">{{ brand_name }}</span>
+    <span class="page-header-date">{{ date_en }} | {{ date_th }}</span>
+  </div>
+
+  <div class="page-content">
+    {{ layout.section_title("Share of Voice", "Ad Volume as % of Total Market") }}
+
+    {% for entry in share_of_voice %}
+    <div class="sov-row{% if entry.is_customer %} customer-row{% endif %}">
+      <div class="sov-name">{{ entry.name }}</div>
+      <div class="sov-bar-container">
+        <div class="sov-bar{% if entry.is_customer %} sov-bar-customer{% endif %}"
+             style="width: {{ entry.pct | round(0) | int }}%;"></div>
+      </div>
+      <div class="sov-pct">{{ "%.1f" | format(entry.pct) }}%</div>
+      <div class="sov-trend">
+        {{ layout.trend_arrow(entry.trend) }}
+      </div>
+    </div>
+    {% endfor %}
+
+    {# ── Your Position Callout ──────────────────────────────────────────── #}
+    {% if customer_sov %}
+    <div class="card card-teal-accent mt-12" style="padding: 10px 14px;">
+      <div class="flex-between">
+        <div>
+          <div class="fs-11 fw-700 text-primary">YOUR POSITION: {{ customer_sov.name }}</div>
+          <div class="fs-10 text-secondary mt-4">
+            {{ "%.1f" | format(customer_sov.pct) }}% share of voice
+            · {{ customer_sov.ad_count }} active ads
+          </div>
+        </div>
+        <div class="fs-12 fw-700 {{ layout.score_class(customer_sov.rank_score) }}">
+          #{{ customer_sov.rank }} of {{ total_competitors }}
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="page-footer">
+    <span class="page-footer-brand">{{ brand_name }}</span>
+    <span class="page-footer-page">Confidential | Page {{ page_offset + 2 }}</span>
+  </div>
+</div>
+
+
+{# ── SECTION C: Recent Activity Timeline ────────────────────────────────── #}
+<div class="page" style="page-break-before: always;">
+  <div class="page-header">
+    <span class="page-header-brand">{{ brand_name }}</span>
+    <span class="page-header-date">{{ date_en }} | {{ date_th }}</span>
+  </div>
+
+  <div class="page-content">
+    {{ layout.section_title("Recent Activity Timeline", "4-Week Campaign Launch Tracker") }}
+
+    {# ── Weekly Grid ──────────────────────────────────────────────────────── #}
+    {% for week in activity_weeks %}
+    <div class="timeline-week">
+      <div class="timeline-week-label">{{ week.label }}</div>
+      {% if week.events %}
+        {% for evt in week.events %}
+        <span class="timeline-event timeline-{{ evt.type }}">
+          {% if evt.type == 'new_entrant' %}🚨{% elif evt.type == 'scaling' %}📈{% elif evt.type == 'refreshed' %}🔄{% else %}⚫{% endif %}
+          {{ evt.name }}
+        </span>
+        {% endfor %}
+      {% else %}
+        <span class="fs-9 text-muted">No new campaigns this week</span>
+      {% endif %}
+    </div>
+    {% endfor %}
+
+    {# ── Bottom Panels ────────────────────────────────────────────────────── #}
+    <div style="display: flex;" class="mt-8">
+      {# Last 7 Days #}
+      <div class="card card-blue-accent" style="width: 31%; margin-right: 3.5%; padding: 10px;">
+        <div class="fs-10 fw-700 text-blue mb-4">Last 7 Days Activity</div>
+        {% for item in last_7_days %}
+        <div class="fs-9 text-body mb-4">• {{ item }}</div>
+        {% endfor %}
+        {% if not last_7_days %}
+        <div class="fs-9 text-muted">No new activity</div>
+        {% endif %}
+      </div>
+
+      {# Gone Dark #}
+      <div class="card card-red-accent" style="width: 31%; margin-right: 3.5%; padding: 10px;">
+        <div class="fs-10 fw-700 text-red mb-4">Gone Dark (30+ days)</div>
+        {% for item in gone_dark %}
+        <div class="fs-9 text-body mb-4">💀 {{ item }}</div>
+        {% endfor %}
+        {% if not gone_dark %}
+        <div class="fs-9 text-muted">All competitors active</div>
+        {% endif %}
+      </div>
+
+      {# Campaign Velocity #}
+      <div class="card card-green-accent" style="width: 31%; padding: 10px;">
+        <div class="fs-10 fw-700 text-green mb-4">Campaign Velocity</div>
+        {% for item in campaign_velocity %}
+        <div class="fs-9 text-body mb-4">{{ item.name }}: <strong>{{ "%.1f" | format(item.rate) }}/wk</strong></div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <div class="page-footer">
+    <span class="page-footer-brand">{{ brand_name }}</span>
+    <span class="page-footer-page">Confidential | Page {{ page_offset + 3 }}</span>
+  </div>
+</div>
+
+
+{# ── SECTION D: Segment Targeting Analysis ───────────────────────────────── #}
+<div class="page" style="page-break-before: always;">
+  <div class="page-header">
+    <span class="page-header-brand">{{ brand_name }}</span>
+    <span class="page-header-date">{{ date_en }} | {{ date_th }}</span>
+  </div>
+
+  <div class="page-content">
+    {{ layout.section_title("Segment Targeting Analysis", "Market Opportunity Matrix") }}
+
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th style="width: 25%;">Segment</th>
+          <th style="width: 18%;">Active Competitors</th>
+          <th style="width: 18%;">Saturation</th>
+          <th style="width: 18%;">Opportunity Score</th>
+          <th style="width: 21%;"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for seg in segments %}
+        <tr{% if seg.is_top_opportunity %} class="highlight-row"{% endif %}>
+          <td class="fw-600">{{ seg.name }}</td>
+          <td class="text-center">{{ seg.active_count }} / {{ total_competitors }}</td>
+          <td class="text-center">
+            <span class="segment-saturation-{{ seg.saturation }}">
+              {% if seg.saturation == 'low' %}🟢 LOW{% elif seg.saturation == 'medium' %}🟡 MEDIUM{% else %}🔴 HIGH{% endif %}
+            </span>
+          </td>
+          <td class="text-center fw-700 {{ layout.score_class(seg.opportunity_score) }}">
+            {{ seg.opportunity_score }}/100
+          </td>
+          <td class="text-center">
+            {% if seg.is_top_opportunity %}⭐ TOP OPPORTUNITY{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    {# ── Interpretation Box ───────────────────────────────────────────────── #}
+    <div class="card card-teal-accent mt-12" style="padding: 10px 14px;">
+      <div class="fs-10 fw-700 text-blue mb-4">How to Read This Table</div>
+      <div class="fs-9 text-body">
+        <strong>Low Saturation + High Opportunity</strong> = underserved segments where you can gain first-mover advantage.<br>
+        <strong>High Saturation</strong> = crowded segments requiring strong differentiation to compete.
+      </div>
+    </div>
+  </div>
+
+  <div class="page-footer">
+    <span class="page-footer-brand">{{ brand_name }}</span>
+    <span class="page-footer-page">Confidential | Page {{ page_offset + 4 }}</span>
+  </div>
+</div>
+
+
+{# ── SECTION E: "Steal This" Playbook ───────────────────────────────────── #}
+<div class="page" style="page-break-before: always;">
+  <div class="page-header">
+    <span class="page-header-brand">{{ brand_name }}</span>
+    <span class="page-header-date">{{ date_en }} | {{ date_th }}</span>
+  </div>
+
+  <div class="page-content">
+    {{ layout.section_title('"Steal This" Playbook', "Top 4 Proven Winning Strategies") }}
+
+    {% for play in playbook[:4] %}
+    <div class="playbook-card">
+      <div class="flex-center mb-4">
+        <span class="playbook-card-number">{{ "%02d" | format(loop.index) }}</span>
+        <span class="playbook-card-title">{{ play.campaign_name }}</span>
+      </div>
+      <div class="playbook-card-competitor">by {{ play.competitor }}</div>
+      <div class="playbook-card-why">{{ play.why_it_works }}</div>
+      <div class="playbook-card-evidence">
+        📊 {{ play.evidence }}
+      </div>
+      <div class="playbook-your-move">
+        <strong>YOUR MOVE:</strong> {{ play.your_move }}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="page-footer">
+    <span class="page-footer-brand">{{ brand_name }}</span>
+    <span class="page-footer-page">Confidential | Page {{ page_offset + 5 }}</span>
+  </div>
+</div>
+
+
+{# ── SECTION F: Recommended Actions ─────────────────────────────────────── #}
+<div class="page" style="page-break-before: always;">
+  <div class="page-header">
+    <span class="page-header-brand">{{ brand_name }}</span>
+    <span class="page-header-date">{{ date_en }} | {{ date_th }}</span>
+  </div>
+
+  <div class="page-content">
+    {{ layout.section_title("Recommended Actions", "Prioritized by Impact & Urgency") }}
+
+    {# ── URGENT ───────────────────────────────────────────────────────────── #}
+    <div class="action-tier action-tier-urgent">
+      <div class="action-tier-header">🚨 URGENT — Do Within 7 Days</div>
+      <div class="action-tier-body">
+        {% for action in urgent_actions %}
+        <div class="action-item">{{ action }}</div>
+        {% endfor %}
+      </div>
+    </div>
+
+    {# ── IMPORTANT ────────────────────────────────────────────────────────── #}
+    <div class="action-tier action-tier-important">
+      <div class="action-tier-header">⚡ IMPORTANT — Do Within 30 Days</div>
+      <div class="action-tier-body">
+        {% for action in important_actions %}
+        <div class="action-item">{{ action }}</div>
+        {% endfor %}
+      </div>
+    </div>
+
+    {# ── CONSIDER ─────────────────────────────────────────────────────────── #}
+    <div class="action-tier action-tier-consider">
+      <div class="action-tier-header">💡 CONSIDER — Strategic Opportunities</div>
+      <div class="action-tier-body">
+        {% for action in strategic_opportunities %}
+        <div class="action-item">{{ action }}</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <div class="page-footer">
+    <span class="page-footer-brand">{{ brand_name }}</span>
+    <span class="page-footer-page">Confidential | Page {{ page_offset + 6 }}</span>
+  </div>
+</div>

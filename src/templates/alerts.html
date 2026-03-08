@@ -1,0 +1,75 @@
+{% import 'base_layout.html' as layout %}
+
+{% set body_content %}
+<style>
+  .alerts-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 5mm;
+  }
+  .alert-card {
+    padding: 15px;
+    border-radius: var(--radius-md);
+    border-left: 4px solid var(--c-border);
+    background-color: var(--c-bg-card);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+  .alert-high {
+    border-left-color: var(--c-red);
+    background-color: #FEF2F2;
+  }
+  .alert-medium {
+    border-left-color: var(--c-amber);
+    background-color: #FFFBEB;
+  }
+  .alert-low {
+    border-left-color: var(--c-green);
+    background-color: #F0FDF4;
+  }
+  .alert-title {
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 5px;
+  }
+  .alert-high .alert-title { color: var(--c-red); }
+  .alert-medium .alert-title { color: var(--c-amber); }
+  .alert-low .alert-title { color: var(--c-green); }
+  
+  .alert-desc {
+    font-size: 11px;
+    color: var(--c-text-body);
+  }
+</style>
+
+{{ layout.section_title("Market Alerts", "Recent anomalies and competitor movements") }}
+
+<div class="alerts-container">
+  {% for alert in alerts %}
+    {% set severity_class = "alert-medium" %}
+    {% if alert.severity == "high" or alert.severity == "critical" %}
+      {% set severity_class = "alert-high" %}
+    {% elif alert.severity == "low" or alert.severity == "info" %}
+      {% set severity_class = "alert-low" %}
+    {% endif %}
+    
+    <div class="alert-card {{ severity_class }}">
+      <div class="alert-title">{{ alert.title }}</div>
+      <div class="alert-desc">{{ alert.description }}</div>
+    </div>
+  {% else %}
+    <div class="alert-card">
+      <div class="alert-title" style="color: var(--c-text-secondary);">No active alerts</div>
+      <div class="alert-desc">The market is currently stable with no major anomalies detected.</div>
+    </div>
+  {% endfor %}
+</div>
+{% endset %}
+
+{{ layout.page(
+    brand_name=brand_name,
+    date_en=date_en,
+    date_th=date_th,
+    page_num=page_offset | default(2),
+    content=body_content
+) }}

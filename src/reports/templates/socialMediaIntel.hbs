@@ -1,0 +1,146 @@
+{{!-- ═════════════════════════════════════════════════════════════════════════
+Social Media & Ad Intelligence — new section added for Apify data
+Covers: per-competitor cards, ad category breakdown, ad copy highlights,
+post themes, competitive ads snapshot, and new-campaigns flag.
+═════════════════════════════════════════════════════════════════════════ --}}
+
+{{#if socialMediaIntel}}
+<section class="page-break report-section" id="social-media-intel">
+    <h2 class="section-title">Social Media & Ad Intelligence</h2>
+    <p class="section-subtitle">Powered by Apify scraper data — scraped {{formatDate socialMediaIntel.scrapedAt}}</p>
+
+    {{!-- ── Per-Competitor Cards ─────────────────────────────────────────── --}}
+    <div class="intel-grid">
+        {{#each socialMediaIntel.competitors}}
+        <div class="intel-card">
+            <h3 class="intel-card-title">{{this.competitorName}}</h3>
+            <div class="intel-card-metrics">
+                <div class="metric-item">
+                    <span class="metric-value">{{this.recentPostCount}}</span>
+                    <span class="metric-label">Recent Posts (7d)</span>
+                </div>
+                <div class="metric-item">
+                    <span class="metric-value">{{this.activeAdsCount}}</span>
+                    <span class="metric-label">Active Ads</span>
+                </div>
+                <div class="metric-item">
+                    <span class="metric-value">{{formatNumber this.topPostEngagement}}</span>
+                    <span class="metric-label">Top Post Engagement</span>
+                </div>
+                <div class="metric-item">
+                    <span class="metric-value">{{formatNumber this.avgEngagement}}</span>
+                    <span class="metric-label">Avg Engagement</span>
+                </div>
+            </div>
+
+            {{!-- Post Themes --}}
+            {{#if this.postThemes.length}}
+            <div class="intel-themes">
+                <strong>Post Themes:</strong>
+                {{#each this.postThemes}}
+                <span class="theme-badge">{{this.theme}} ({{this.postCount}})</span>
+                {{/each}}
+            </div>
+            {{else}}
+            <p class="no-data">No post theme data available</p>
+            {{/if}}
+
+            {{!-- Errors --}}
+            {{#if this.errors.length}}
+            <div class="intel-errors">
+                {{#each this.errors}}<span class="error-badge">⚠ {{this}}</span>{{/each}}
+            </div>
+            {{/if}}
+        </div>
+        {{/each}}
+    </div>
+
+    {{!-- ── Ad Category Breakdown Table ─────────────────────────────────── --}}
+    <h3 class="subsection-title">Ad Category Breakdown</h3>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Competitor</th>
+                <th>Promotional</th>
+                <th>Branding</th>
+                <th>Direct Response</th>
+                <th>Total Ads</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#each socialMediaIntel.competitors}}
+            <tr>
+                <td><strong>{{this.competitorName}}</strong></td>
+                <td>{{this.adCategories.promotional}}</td>
+                <td>{{this.adCategories.branding}}</td>
+                <td>{{this.adCategories.directResponse}}</td>
+                <td>{{this.totalAds}}</td>
+            </tr>
+            {{/each}}
+        </tbody>
+    </table>
+
+    {{!-- ── Sample Ad Copy Highlights ───────────────────────────────────── --}}
+    <h3 class="subsection-title">Top Ad Copy Highlights</h3>
+    {{#each socialMediaIntel.competitors}}
+    {{#if this.topAds.length}}
+    <div class="ad-highlights">
+        <h4>{{this.competitorName}}</h4>
+        {{#each this.topAds}}
+        <div class="ad-sample">
+            {{#if this.headline}}<div class="ad-headline">{{this.headline}}</div>{{/if}}
+            <div class="ad-body">{{this.text}}</div>
+            <div class="ad-meta">
+                <span class="ad-cta">{{this.cta}}</span>
+                <span class="ad-platforms">{{this.platforms}}</span>
+                {{#if this.startDate}}<span class="ad-date">Started: {{formatDate this.startDate}}</span>{{/if}}
+            </div>
+        </div>
+        {{/each}}
+    </div>
+    {{/if}}
+    {{/each}}
+
+    {{!-- ── Competitive Ads Snapshot ────────────────────────────────────── --}}
+    <h3 class="subsection-title">Competitive Ads Snapshot</h3>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Competitor</th>
+                <th>Active Ads</th>
+                <th>Posts/Week</th>
+                <th>Avg Engagement</th>
+                <th>New Campaigns (7d)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#each socialMediaIntel.comparison}}
+            <tr{{#if this.hasNewCampaigns}} class="highlight-row" {{/if}}>
+                <td><strong>{{this.competitorName}}</strong></td>
+                <td>{{this.activeAds}}</td>
+                <td>{{this.postsLast7Days}} <span class="label-muted">({{this.postingLabel}})</span></td>
+                <td>{{formatNumber this.avgEngagement}} <span class="label-muted">({{this.engagementLabel}})</span></td>
+                <td>
+                    {{#if this.hasNewCampaigns}}
+                    <span class="badge-warning">🔥 {{this.newCampaigns}} new</span>
+                    {{else}}
+                    <span class="label-muted">None</span>
+                    {{/if}}
+                </td>
+                </tr>
+                {{/each}}
+        </tbody>
+    </table>
+
+    {{!-- Market totals --}}
+    {{#if socialMediaIntel.marketSummary}}
+    <div class="market-summary-bar">
+        <span><strong>Market Total:</strong></span>
+        <span>{{socialMediaIntel.marketSummary.totalPosts}} posts</span>
+        <span>{{socialMediaIntel.marketSummary.totalAds}} ads</span>
+        <span>{{socialMediaIntel.marketSummary.activeAds}} active</span>
+        <span>Avg engagement: {{formatNumber socialMediaIntel.marketSummary.avgEngagement}}</span>
+    </div>
+    {{/if}}
+</section>
+{{/if}}

@@ -1,0 +1,29 @@
+
+> competitor-intel-system@1.0.0 typecheck
+> tsc --noEmit
+
+node_modules/chart.js/auto/auto.mts(1,23): error TS2307: Cannot find module '../types/index.esm' or its corresponding type declarations.
+node_modules/chart.js/auto/auto.mts(3,15): error TS2307: Cannot find module '../types/index.esm' or its corresponding type declarations.
+src/db/queries.ts(708,9): error TS2353: Object literal may only specify known properties, and 'reportTitle' does not exist in type 'PgUpdateSetSource<PgTableWithColumns<{ name: "reports"; schema: undefined; columns: { id: PgColumn<{ name: "id"; tableName: "reports"; dataType: "number"; columnType: "PgSerial"; data: number; driverParam: number; notNull: true; hasDefault: true; ... 6 more ...; generated: undefined; }, {}, {}>; ... 18 more ...; del...'.
+src/db/queries.ts(708,27): error TS2339: Property 'reportTitle' does not exist on type '{ title: string; htmlContent: string; reportMonth: number; reportYear: number; id?: number | undefined; createdAt?: Date | undefined; updatedAt?: Date | undefined; totalActiveAds?: number | undefined; ... 11 more ...; deletedAt?: Date | ... 1 more ... | undefined; }'.
+src/db/queries.ts(709,27): error TS2339: Property 'periodStart' does not exist on type '{ title: string; htmlContent: string; reportMonth: number; reportYear: number; id?: number | undefined; createdAt?: Date | undefined; updatedAt?: Date | undefined; totalActiveAds?: number | undefined; ... 11 more ...; deletedAt?: Date | ... 1 more ... | undefined; }'.
+src/db/queries.ts(710,25): error TS2339: Property 'periodEnd' does not exist on type '{ title: string; htmlContent: string; reportMonth: number; reportYear: number; id?: number | undefined; createdAt?: Date | undefined; updatedAt?: Date | undefined; totalActiveAds?: number | undefined; ... 11 more ...; deletedAt?: Date | ... 1 more ... | undefined; }'.
+src/db/queries.ts(711,23): error TS2339: Property 'pdfPath' does not exist on type '{ title: string; htmlContent: string; reportMonth: number; reportYear: number; id?: number | undefined; createdAt?: Date | undefined; updatedAt?: Date | undefined; totalActiveAds?: number | undefined; ... 11 more ...; deletedAt?: Date | ... 1 more ... | undefined; }'.
+src/db/queries.ts(712,32): error TS2339: Property 'totalCompetitors' does not exist on type '{ title: string; htmlContent: string; reportMonth: number; reportYear: number; id?: number | undefined; createdAt?: Date | undefined; updatedAt?: Date | undefined; totalActiveAds?: number | undefined; ... 11 more ...; deletedAt?: Date | ... 1 more ... | undefined; }'.
+src/db/queries.ts(713,24): error TS2339: Property 'totalAds' does not exist on type '{ title: string; htmlContent: string; reportMonth: number; reportYear: number; id?: number | undefined; createdAt?: Date | undefined; updatedAt?: Date | undefined; totalActiveAds?: number | undefined; ... 11 more ...; deletedAt?: Date | ... 1 more ... | undefined; }'.
+src/db/queries.ts(714,27): error TS2339: Property 'totalAlerts' does not exist on type '{ title: string; htmlContent: string; reportMonth: number; reportYear: number; id?: number | undefined; createdAt?: Date | undefined; updatedAt?: Date | undefined; totalActiveAds?: number | undefined; ... 11 more ...; deletedAt?: Date | ... 1 more ... | undefined; }'.
+src/db/queries.ts(731,7): error TS2353: Object literal may only specify known properties, and 'isDelivered' does not exist in type '{ title?: string | SQL<unknown> | PgColumn<ColumnBaseConfig<ColumnDataType, string>, {}, {}> | undefined; htmlContent?: string | SQL<...> | PgColumn<...> | undefined; ... 17 more ...; deletedAt?: Date | ... 3 more ... | undefined; }'.
+src/generators/competitorPageGenerator.ts(2,27): error TS2307: Cannot find module 'nunjucks' or its corresponding type declarations.
+src/generators/executiveSummaryGenerator.ts(3,22): error TS2307: Cannot find module 'nunjucks' or its corresponding type declarations.
+src/generators/intelligenceGenerator.ts(2,27): error TS2307: Cannot find module 'nunjucks' or its corresponding type declarations.
+src/generators/intelligenceGenerator.ts(152,38): error TS2345: Argument of type '{ name: any; type: string; }' is not assignable to parameter of type 'never'.
+src/generators/intelligenceGenerator.ts(225,25): error TS2532: Object is possibly 'undefined'.
+src/scrapers/facebookPage.ts(9,72): error TS2307: Cannot find module 'playwright' or its corresponding type declarations.
+src/scrapers/facebookPosts.ts(13,72): error TS2307: Cannot find module 'playwright' or its corresponding type declarations.
+src/scrapers/metaAds.ts(13,72): error TS2307: Cannot find module 'playwright' or its corresponding type declarations.
+src/services/apifyService.ts(62,31): error TS4111: Property 'APIFY_API_TOKEN' comes from an index signature, so it must be accessed with ['APIFY_API_TOKEN'].
+src/services/report.ts(175,13): error TS2353: Object literal may only specify known properties, and 'reportTitle' does not exist in type '{ title: string; htmlContent: string; reportMonth: number; reportYear: number; id?: number | undefined; createdAt?: Date | undefined; updatedAt?: Date | undefined; totalActiveAds?: number | undefined; ... 11 more ...; deletedAt?: Date | ... 1 more ... | undefined; }'.
+src/services/scrape.ts(258,56): error TS2345: Argument of type '(raw: Record<string, unknown>) => NewAd' is not assignable to parameter of type '(value: NormalizedAd, index: number, array: NormalizedAd[]) => NewAd'.
+  Types of parameters 'raw' and 'value' are incompatible.
+    Type 'NormalizedAd' is not assignable to type 'Record<string, unknown>'.
+      Index signature for type 'string' is missing in type 'NormalizedAd'.

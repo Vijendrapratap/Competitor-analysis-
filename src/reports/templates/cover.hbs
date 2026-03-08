@@ -1,0 +1,34 @@
+<div class="page-break" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:90vh;text-align:center;">
+  <div style="margin-bottom:3rem;">
+    <div style="width:80px;height:80px;background:var(--navy);border-radius:50%;margin:0 auto 1.5rem;display:flex;align-items:center;justify-content:center;">
+      <span style="color:var(--gold);font-size:2rem;font-weight:700;">CI</span>
+    </div>
+    <h1 style="font-size:2.4rem;color:var(--navy);margin-bottom:.5rem;border:none;">COMPETITOR<br/>INTELLIGENCE REPORT</h1>
+    <h1 style="font-size:2.4rem;color:var(--navy);margin-bottom:.5rem;border:none;">
+      <span class="thai" style="font-size:1.4rem;color:var(--gray-600);">รายงานข่าวกรองคู่แข่ง</span>
+    </h1>
+    <div style="width:60px;height:3px;background:var(--gold);margin:1.5rem auto;"></div>
+    <p style="font-size:1.3rem;color:var(--gray-600);">{{reportDate}}</p>
+    <p class="thai" style="font-size:1rem;color:var(--gray-500);">Hua Hin Hospitality Market</p>
+    <p class="thai" style="font-size:1rem;color:var(--gray-500);">ตลาดโรงแรมหัวหิน</p>
+  </div>
+
+  <div style="margin-top:2rem;">
+    <p style="font-size:.9rem;color:var(--gray-500);">
+      Reporting Period: {{formatDate periodStart}} &mdash; {{formatDate periodEnd}}
+    </p>
+    <p class="thai" style="font-size:.85rem;color:var(--gray-500);">
+      ช่วงเวลารายงาน: {{formatDate periodStart}} &mdash; {{formatDate periodEnd}}
+    </p>
+  </div>
+
+  <div style="margin-top:4rem;padding:.6rem 2rem;border:2px solid var(--red);border-radius:4px;display:inline-block;">
+    <span style="color:var(--red);font-weight:700;font-size:.85rem;letter-spacing:.1em;text-transform:uppercase;">
+      CONFIDENTIAL / เอกสารลับ
+    </span>
+  </div>
+
+  <div style="margin-top:2rem;">
+    <small>Generated {{formatDateTime generatedAt}} &bull; {{marketOverview.totalCompetitors}} competitors tracked</small>
+  </div>
+</div>

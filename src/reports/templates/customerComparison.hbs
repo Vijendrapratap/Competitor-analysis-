@@ -1,0 +1,125 @@
+<div class="page-break">
+  <h2>Your Competitive Position / ตำแหน่งการแข่งขันของคุณ</h2>
+
+  {{!-- Customer vs Market Averages --}}
+  <div class="grid-2 mt-2">
+    <div class="card card-navy no-break">
+      <h4 style="color:var(--gold);">Your Health Score / คะแนนสุขภาพของคุณ</h4>
+      <p style="font-size:2.2rem;margin:.3rem 0;">{{round customer.totalScore 0}}<small>/100</small></p>
+      <small style="color:var(--gray-300);">
+        Rank #{{customerRank}} of {{marketOverview.totalCompetitors}} &bull;
+        <span class="trend-{{lowercase customer.trend}}">{{trendArrow customer.trend}} {{customer.trend}}</span>
+      </small>
+    </div>
+    <div class="card no-break">
+      <h4>Market Average / ค่าเฉลี่ยตลาด</h4>
+      <p style="font-size:2.2rem;margin:.3rem 0;color:var(--gray-600);">{{round marketOverview.avgHealthScore 0}}<small>/100</small></p>
+      <small>
+        {{#if customerAboveAverage}}
+          <span style="color:var(--green);">You are {{round customerDelta 1}} pts above average ▲</span>
+        {{else}}
+          <span style="color:var(--red);">You are {{round customerDeltaAbs 1}} pts below average ▼</span>
+        {{/if}}
+      </small>
+    </div>
+  </div>
+
+  {{!-- Dimension Comparison --}}
+  <div class="section mt-2">
+    <h3>Score Breakdown / รายละเอียดคะแนน</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Dimension / มิติ</th>
+          <th>Your Score</th>
+          <th>Market Avg</th>
+          <th>Leader</th>
+          <th>Gap to Leader</th>
+          <th>Visual</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each dimensionComparison}}
+        <tr class="no-break">
+          <td>
+            <strong>{{nameEn}}</strong>
+            <br/><small class="thai">{{nameTh}}</small>
+          </td>
+          <td><span class="score {{scoreClass customerValue}}">{{round customerValue 0}}</span></td>
+          <td>{{round marketAvg 0}}</td>
+          <td>{{round leaderValue 0}} <small>({{leaderName}})</small></td>
+          <td>
+            {{#if isLeading}}
+              <span style="color:var(--green);font-weight:600;">LEADING</span>
+            {{else}}
+              <span style="color:var(--red);">-{{round gap 0}}</span>
+            {{/if}}
+          </td>
+          <td style="width:120px;">
+            <div class="progress-bar">
+              <div class="progress-fill" style="width:{{customerValue}}%;background:{{scoreColor customerValue}};"></div>
+            </div>
+          </td>
+        </tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+
+  {{!-- Paid vs Organic Comparison --}}
+  <div class="grid-2 mt-1">
+    <div class="card no-break">
+      <h4>Paid Performance / ผลลัพธ์โฆษณา</h4>
+      <div style="text-align:center;margin:.5rem 0;">
+        <span style="font-size:1.8rem;font-weight:700;color:var(--navy);">{{round customer.paidScore 0}}</span>
+        <small style="color:var(--gray-500);"> / 100</small>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" style="width:{{customer.paidScore}}%;background:var(--navy);"></div>
+      </div>
+      <div class="mt-1" style="font-size:.85rem;">
+        <div>Ad Volume: <strong>{{customer.adVolume}}</strong> <small>(Mkt avg: {{round marketAvg.adVolume 0}})</small></div>
+        <div>Ad Freshness: <strong>{{round customer.adFreshness 0}}</strong> <small>(Mkt avg: {{round marketAvg.adFreshness 0}})</small></div>
+        <div>Creativity: <strong>{{round customer.adCreativity 0}}</strong> <small>(Mkt avg: {{round marketAvg.adCreativity 0}})</small></div>
+        <div>Share of Voice: <strong>{{round customer.shareOfVoice 1}}%</strong></div>
+      </div>
+    </div>
+    <div class="card no-break">
+      <h4>Organic Performance / ผลลัพธ์ออร์แกนิก</h4>
+      <div style="text-align:center;margin:.5rem 0;">
+        <span style="font-size:1.8rem;font-weight:700;color:var(--navy);">{{round customer.organicScore 0}}</span>
+        <small style="color:var(--gray-500);"> / 100</small>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" style="width:{{customer.organicScore}}%;background:var(--green);"></div>
+      </div>
+      <div class="mt-1" style="font-size:.85rem;">
+        <div>Audience Size: <strong>{{formatNumber customer.followers}}</strong> <small>(Mkt avg: {{formatNumber marketAvg.followers}})</small></div>
+        <div>Engagement Rate: <strong>{{round customer.engagementRate 2}}%</strong> <small>(Mkt avg: {{round marketAvg.engagementRate 2}}%)</small></div>
+        <div>Post Frequency: <strong>{{customer.postsLast30d}}</strong>/mo <small>(Mkt avg: {{round marketAvg.postsLast30d 0}}/mo)</small></div>
+        <div>Content Diversity: <strong>{{round customer.contentDiversity 0}}</strong></div>
+      </div>
+    </div>
+  </div>
+
+  {{!-- Closest Competitors --}}
+  <div class="section mt-2">
+    <h3>Closest Competitors / คู่แข่งใกล้เคียง</h3>
+    <div class="grid-3">
+      {{#each closestCompetitors}}
+      <div class="card no-break text-center">
+        <small class="thai">{{category}}</small>
+        <p style="font-weight:700;font-size:1rem;">{{name}}</p>
+        <span class="score {{scoreClass totalScore}}">{{round totalScore 0}}</span>
+        <div class="mt-1" style="font-size:.8rem;color:var(--gray-500);">
+          {{#if isAbove}}
+            <span style="color:var(--red);">{{round delta 1}} pts ahead ▲</span>
+          {{else}}
+            <span style="color:var(--green);">{{round deltaAbs 1}} pts behind ▼</span>
+          {{/if}}
+        </div>
+      </div>
+      {{/each}}
+    </div>
+  </div>
+</div>

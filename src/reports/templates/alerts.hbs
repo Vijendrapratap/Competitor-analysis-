@@ -1,0 +1,135 @@
+<div class="page-break">
+  <h2>Market Alerts / การแจ้งเตือนตลาด</h2>
+
+  {{!-- Alert Summary --}}
+  <div class="grid-4 mt-2" style="display:grid;grid-template-columns:repeat(4,1fr);gap:.8rem;">
+    <div class="card text-center no-break" style="border-top:3px solid var(--red);">
+      <small>Critical / วิกฤต</small>
+      <p style="font-size:1.5rem;font-weight:700;color:var(--red);">{{alertSummary.critical}}</p>
+    </div>
+    <div class="card text-center no-break" style="border-top:3px solid var(--gold);">
+      <small>High / สูง</small>
+      <p style="font-size:1.5rem;font-weight:700;color:var(--gold);">{{alertSummary.high}}</p>
+    </div>
+    <div class="card text-center no-break" style="border-top:3px solid var(--navy-light);">
+      <small>Medium / กลาง</small>
+      <p style="font-size:1.5rem;font-weight:700;color:var(--navy-light);">{{alertSummary.medium}}</p>
+    </div>
+    <div class="card text-center no-break" style="border-top:3px solid var(--gray-300);">
+      <small>Low / ต่ำ</small>
+      <p style="font-size:1.5rem;font-weight:700;color:var(--gray-500);">{{alertSummary.low}}</p>
+    </div>
+  </div>
+
+  {{!-- Critical Alerts --}}
+  {{#if criticalAlerts.length}}
+  <div class="section mt-2">
+    <h3 style="color:var(--red);">⚠️ Critical Alerts / การแจ้งเตือนวิกฤต</h3>
+    {{#each criticalAlerts}}
+    <div class="alert-card alert-critical no-break">
+      <div style="display:flex;justify-content:space-between;align-items:start;">
+        <div>
+          <span class="badge badge-critical">{{alertType}}</span>
+          <strong style="margin-left:.5rem;">{{titleEn}}</strong>
+        </div>
+        <small>{{formatDate detectedAt}}</small>
+      </div>
+      <p style="margin:.4rem 0;font-size:.9rem;">{{descriptionEn}}</p>
+      <p class="thai" style="margin:.2rem 0;">{{descriptionTh}}</p>
+      {{#if affectedCompetitors.length}}
+      <small>Affected: {{join affectedCompetitors ", "}}</small>
+      {{/if}}
+    </div>
+    {{/each}}
+  </div>
+  {{/if}}
+
+  {{!-- High Priority Alerts --}}
+  {{#if highAlerts.length}}
+  <div class="section mt-1">
+    <h3 style="color:var(--gold-dark);">🔔 High Priority Alerts / การแจ้งเตือนสำคัญ</h3>
+    {{#each highAlerts}}
+    <div class="alert-card alert-warning no-break">
+      <div style="display:flex;justify-content:space-between;align-items:start;">
+        <div>
+          <span class="badge badge-warning">{{alertType}}</span>
+          <strong style="margin-left:.5rem;">{{titleEn}}</strong>
+        </div>
+        <small>{{formatDate detectedAt}}</small>
+      </div>
+      <p style="margin:.4rem 0;font-size:.9rem;">{{descriptionEn}}</p>
+      <p class="thai" style="margin:.2rem 0;">{{descriptionTh}}</p>
+      {{#if affectedCompetitors.length}}
+      <small>Affected: {{join affectedCompetitors ", "}}</small>
+      {{/if}}
+    </div>
+    {{/each}}
+  </div>
+  {{/if}}
+
+  {{!-- Medium & Low Alerts --}}
+  {{#if mediumAlerts.length}}
+  <div class="section mt-1">
+    <h3>📋 Medium Alerts / การแจ้งเตือนปานกลาง</h3>
+    {{#each mediumAlerts}}
+    <div class="alert-card alert-info no-break">
+      <div style="display:flex;justify-content:space-between;align-items:start;">
+        <div>
+          <span class="badge badge-info">{{alertType}}</span>
+          <strong style="margin-left:.5rem;">{{titleEn}}</strong>
+        </div>
+        <small>{{formatDate detectedAt}}</small>
+      </div>
+      <p style="margin:.4rem 0;font-size:.9rem;">{{descriptionEn}}</p>
+      {{#if affectedCompetitors.length}}
+      <small>Affected: {{join affectedCompetitors ", "}}</small>
+      {{/if}}
+    </div>
+    {{/each}}
+  </div>
+  {{/if}}
+
+  {{#if lowAlerts.length}}
+  <div class="section mt-1">
+    <h3>ℹ️ Low Priority / ลำดับความสำคัญต่ำ</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Competitor</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each lowAlerts}}
+        <tr class="no-break">
+          <td><span class="badge badge-info">{{alertType}}</span></td>
+          <td>{{titleEn}}</td>
+          <td>{{join affectedCompetitors ", "}}</td>
+          <td><small>{{formatDate detectedAt}}</small></td>
+        </tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+  {{/if}}
+
+  {{!-- Alert Timeline --}}
+  <div class="section mt-2">
+    <h3>Alert Timeline (Last 30 Days) / ไทม์ไลน์การแจ้งเตือน</h3>
+    <div class="card">
+      <div style="display:flex;flex-wrap:wrap;gap:2px;">
+        {{#each alertTimeline}}
+        <div style="width:16px;height:16px;border-radius:2px;background:{{dayColor count severity}};"
+             title="{{date}}: {{count}} alert(s)"></div>
+        {{/each}}
+      </div>
+      <div class="mt-1" style="font-size:.75rem;color:var(--gray-500);">
+        <span style="display:inline-block;width:10px;height:10px;background:var(--gray-100);border-radius:2px;"></span> No alerts
+        <span style="display:inline-block;width:10px;height:10px;background:var(--yellow-bg);border:1px solid var(--gold);border-radius:2px;margin-left:.5rem;"></span> Low/Medium
+        <span style="display:inline-block;width:10px;height:10px;background:var(--red);border-radius:2px;margin-left:.5rem;"></span> High/Critical
+      </div>
+    </div>
+  </div>
+</div>

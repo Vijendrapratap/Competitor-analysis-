@@ -1,0 +1,77 @@
+<div class="page-break">
+  <h2>Executive Brief / สรุปผู้บริหาร</h2>
+
+  {{!-- Market Status --}}
+  <div class="grid-3 mt-2">
+    <div class="card card-navy text-center">
+      <h4>Market Status</h4>
+      <p style="font-size:1.6rem;margin:.3rem 0;">{{marketStatus}}</p>
+      <small class="thai" style="color:var(--gray-300);">สถานะตลาด</small>
+    </div>
+    <div class="card card-navy text-center">
+      <h4>Your Position</h4>
+      <p style="font-size:1.6rem;margin:.3rem 0;">#{{customerRank}} <small>of {{marketOverview.totalCompetitors}}</small></p>
+      <small class="thai" style="color:var(--gray-300);">อันดับของคุณ</small>
+    </div>
+    <div class="card card-navy text-center">
+      <h4>Health Score</h4>
+      <p style="font-size:1.6rem;margin:.3rem 0;">{{customerScore}}/100</p>
+      <small class="thai" style="color:var(--gray-300);">คะแนนสุขภาพ</small>
+    </div>
+  </div>
+
+  {{!-- Key stats row --}}
+  <div class="grid-3 mt-1">
+    <div class="card text-center">
+      <small>Active Ads / โฆษณา</small>
+      <p style="font-size:1.3rem;font-weight:700;color:var(--navy);">{{marketOverview.totalActiveAds}}</p>
+    </div>
+    <div class="card text-center">
+      <small>Avg Health / คะแนนเฉลี่ย</small>
+      <p style="font-size:1.3rem;font-weight:700;color:var(--navy);">{{round marketOverview.avgHealthScore 1}}</p>
+    </div>
+    <div class="card text-center">
+      <small>Competitors / คู่แข่ง</small>
+      <p style="font-size:1.3rem;font-weight:700;color:var(--navy);">{{marketOverview.activeCompetitors}}</p>
+    </div>
+  </div>
+
+  {{!-- Top 3 Things to Know --}}
+  <div class="section mt-2">
+    <h3>Top 3 Things to Know / สิ่งที่ต้องรู้ 3 อันดับแรก</h3>
+    {{#each topInsights}}
+    <div class="card card-gold no-break">
+      <strong>{{@index1}}. {{titleEn}}</strong>
+      <p>{{descriptionEn}}</p>
+      <p class="thai">{{descriptionTh}}</p>
+    </div>
+    {{/each}}
+  </div>
+
+  {{!-- Top 3 Recommended Actions --}}
+  <div class="section">
+    <h3>Top 3 Recommended Actions / การดำเนินการที่แนะนำ</h3>
+    {{#each topActions}}
+    <div class="card no-break" style="border-left:4px solid var(--gold);">
+      <strong>{{@index1}}. {{title}}</strong>
+      <p style="font-size:.9rem;">{{description}}</p>
+    </div>
+    {{/each}}
+  </div>
+
+  {{!-- Biggest Opportunity & Threat --}}
+  <div class="grid-2 mt-1">
+    <div class="card no-break" style="border-left:4px solid var(--green);">
+      <h4 style="color:var(--green);">Biggest Opportunity / โอกาสที่ใหญ่ที่สุด</h4>
+      <p>{{biggestOpportunity.titleEn}}</p>
+      <p class="thai">{{biggestOpportunity.titleTh}}</p>
+      <small>{{biggestOpportunity.detail}}</small>
+    </div>
+    <div class="card no-break" style="border-left:4px solid var(--red);">
+      <h4 style="color:var(--red);">Biggest Threat / ภัยคุกคามที่ใหญ่ที่สุด</h4>
+      <p>{{biggestThreat.titleEn}}</p>
+      <p class="thai">{{biggestThreat.titleTh}}</p>
+      <small>{{biggestThreat.detail}}</small>
+    </div>
+  </div>
+</div>
