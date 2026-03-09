@@ -1,0 +1,71 @@
+<div class="page-break">
+  <h2>Promotion Calendar / ปฏิทินโปรโมชัน</h2>
+
+  {{#if promoCalendar.hasPromos}}
+
+  {{!-- Summary cards --}}
+  <div class="grid-3 mt-2">
+    <div class="card card-navy text-center no-break">
+      <small style="color:var(--gray-300);">Active Promotions / โปรโมชันที่ใช้งาน</small>
+      <p style="font-size:1.8rem;margin:.3rem 0;">{{promoCalendar.activePromoCount}}</p>
+    </div>
+    <div class="card text-center no-break">
+      <small>Competitors Running Promos / คู่แข่งที่มีโปรโมชัน</small>
+      <p style="font-size:1.8rem;margin:.3rem 0;color:var(--navy);">{{promoCalendar.activePromoters}}</p>
+      <small>of {{promoCalendar.totalCompetitors}}</small>
+    </div>
+    <div class="card text-center no-break">
+      <small>Promo Types Detected / ประเภทโปรโมชัน</small>
+      <p style="font-size:1.8rem;margin:.3rem 0;color:var(--navy);">{{promoCalendar.promoTypeSummary.length}}</p>
+    </div>
+  </div>
+
+  {{!-- Promo type distribution --}}
+  <div class="section mt-2">
+    <h3>Promotion Type Distribution / การกระจายประเภทโปรโมชัน</h3>
+    {{#each promoCalendar.promoTypeSummary}}
+    <div class="card no-break" style="padding:.5rem 1rem;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <strong>{{type}}</strong>
+        <span style="color:var(--navy);font-weight:700;">{{count}} {{#if (eq count 1)}}competitor{{else}}competitors{{/if}}</span>
+      </div>
+      <div class="progress-bar mt-1">
+        <div class="progress-fill" style="width:{{pct this.count ../promoCalendar.activePromoters}}%;background:var(--navy);"></div>
+      </div>
+    </div>
+    {{/each}}
+  </div>
+
+  {{!-- Active promos detail --}}
+  <div class="section mt-2">
+    <h3>Active Promotions Detail / รายละเอียดโปรโมชันที่ใช้งาน</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Competitor</th>
+          <th>Promo Type</th>
+          <th>Ad Copy Snippet</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each promoCalendar.activePromos}}
+        <tr class="{{#if isCustomer}}highlight{{/if}} no-break">
+          <td>
+            <strong>{{name}}</strong>
+            {{#if isCustomer}}<span class="badge badge-info">YOU</span>{{/if}}
+          </td>
+          <td><span class="badge badge-warning">{{promoType}}</span></td>
+          <td><small style="color:var(--gray-600);">{{snippet}}</small></td>
+        </tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+
+  {{else}}
+  <div class="card mt-2 text-center" style="padding:2rem;">
+    <p style="color:var(--gray-500);">No promotional activity detected in current ad copy.</p>
+    <small class="thai">ไม่พบกิจกรรมโปรโมชันในโฆษณาปัจจุบัน</small>
+  </div>
+  {{/if}}
+</div>

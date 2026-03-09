@@ -1,0 +1,127 @@
+<div class="page-break">
+  <h2>Creative Intelligence / ข้อมูลเชิงลึกด้านครีเอทีฟ</h2>
+
+  {{#if creativeIntelligence.hasData}}
+
+  <div class="grid-2 mt-2">
+    {{!-- Ad Format Effectiveness --}}
+    <div class="section">
+      <h3>Ad Format Distribution / การกระจายรูปแบบโฆษณา</h3>
+      {{#each creativeIntelligence.formatEffectiveness}}
+      <div class="card no-break" style="padding:.5rem .8rem;">
+        <div style="display:flex;justify-content:space-between;">
+          <strong>{{label}}</strong>
+          <span style="color:var(--navy);">{{count}} ads ({{pct}}%)</span>
+        </div>
+        <div class="progress-bar mt-1">
+          <div class="progress-fill" style="width:{{pct}}%;background:var(--navy);"></div>
+        </div>
+      </div>
+      {{else}}
+      <div class="card"><small style="color:var(--gray-500);">No ad format data available.</small></div>
+      {{/each}}
+    </div>
+
+    {{!-- CTA Breakdown --}}
+    <div class="section">
+      <h3>Call-to-Action Breakdown / รูปแบบ CTA</h3>
+      {{#each creativeIntelligence.ctaBreakdown}}
+      <div class="card no-break" style="padding:.5rem .8rem;">
+        <div style="display:flex;justify-content:space-between;">
+          <strong>{{cta}}</strong>
+          <span style="color:var(--navy);">{{count}} ({{pct}}%)</span>
+        </div>
+        <div class="progress-bar mt-1">
+          <div class="progress-fill" style="width:{{pct}}%;background:var(--green);"></div>
+        </div>
+      </div>
+      {{else}}
+      <div class="card"><small style="color:var(--gray-500);">No CTA data available.</small></div>
+      {{/each}}
+    </div>
+  </div>
+
+  {{!-- Content Themes --}}
+  {{#if creativeIntelligence.contentThemes.length}}
+  <div class="section mt-2">
+    <h3>Content Themes / ธีมเนื้อหา <small style="font-weight:400;color:var(--gray-500);">(from {{creativeIntelligence.totalPostsAnalyzed}} posts analyzed)</small></h3>
+    <div class="grid-3">
+      {{#each creativeIntelligence.contentThemes}}
+      <div class="card text-center no-break">
+        <strong>{{theme}}</strong>
+        <p style="font-size:1.4rem;margin:.3rem 0;color:var(--navy);">{{postCount}}</p>
+        <small>posts ({{pct}}%)</small>
+        <div class="progress-bar mt-1">
+          <div class="progress-fill" style="width:{{pct}}%;background:var(--navy);"></div>
+        </div>
+      </div>
+      {{/each}}
+    </div>
+  </div>
+  {{/if}}
+
+  {{!-- Post Type Engagement --}}
+  {{#if creativeIntelligence.postTypeEngagement.length}}
+  <div class="section mt-2">
+    <h3>Engagement by Content Type / การมีส่วนร่วมตามประเภทเนื้อหา</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Content Type</th>
+          <th>Posts Analyzed</th>
+          <th>Avg Engagement</th>
+          <th>Performance</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each creativeIntelligence.postTypeEngagement}}
+        <tr class="no-break">
+          <td><strong>{{type}}</strong></td>
+          <td>{{postCount}}</td>
+          <td>{{formatNumber avgEngagement}}</td>
+          <td style="width:120px;">
+            <div class="progress-bar">
+              <div class="progress-fill" style="width:{{pct avgEngagement 10000}}%;background:var(--green);"></div>
+            </div>
+          </td>
+        </tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+  {{/if}}
+
+  {{!-- Top Engaging Competitors --}}
+  {{#if creativeIntelligence.topEngagers.length}}
+  <div class="section mt-2">
+    <h3>Top Organic Engagers / คู่แข่งที่มีการมีส่วนร่วมสูงสุด</h3>
+    <div class="grid-2">
+      {{#each creativeIntelligence.topEngagers}}
+      <div class="card no-break">
+        <div style="display:flex;justify-content:space-between;align-items:start;">
+          <div>
+            <strong>{{name}}</strong>
+            {{#if isCustomer}}<span class="badge badge-info">YOU</span>{{/if}}
+            <br/><small style="color:var(--gray-500);">{{strategy}}</small>
+          </div>
+          <div style="text-align:right;">
+            <span style="font-size:1.2rem;font-weight:700;color:var(--green);">{{engagementRate}}%</span>
+            <br/><small>engagement rate</small>
+          </div>
+        </div>
+        <div style="font-size:.8rem;color:var(--gray-500);margin-top:.3rem;">
+          {{postsLast30d}} posts last 30 days
+        </div>
+      </div>
+      {{/each}}
+    </div>
+  </div>
+  {{/if}}
+
+  {{else}}
+  <div class="card mt-2 text-center" style="padding:2rem;">
+    <p style="color:var(--gray-500);">Insufficient creative data for analysis.</p>
+    <small class="thai">ข้อมูลครีเอทีฟไม่เพียงพอสำหรับการวิเคราะห์</small>
+  </div>
+  {{/if}}
+</div>

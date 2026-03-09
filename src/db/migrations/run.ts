@@ -358,7 +358,114 @@ async function runSchemaPush(pool: pg.Pool): Promise<void> {
     CREATE INDEX IF NOT EXISTS pipeline_runs_status_idx ON pipeline_runs (status);
   `);
 
-  log.info('Schema push complete — all 9 tables and indexes are up to date');
+  // ───────────────────────────────────────────────────────────────────────────────
+  // 002 — Schema Enhancements: add new columns and tables
+  // ───────────────────────────────────────────────────────────────────────────────
+
+  await db.execute(sql`
+    -- ═══════════════════════════════════════════════════════════════════════════
+    -- COMPETITORS: add 6 cached/computed columns
+    -- ═══════════════════════════════════════════════════════════════════════════
+    ALTER TABLE IF EXISTS competitors ADD COLUMN IF NOT EXISTS cached_health_score NUMERIC(5,2);
+    ALTER TABLE IF EXISTS competitors ADD COLUMN IF NOT EXISTS cached_share_of_voice NUMERIC(5,2);
+    ALTER TABLE IF EXISTS competitors ADD COLUMN IF NOT EXISTS cached_threat_level VARCHAR(20);
+    ALTER TABLE IF EXISTS competitors ADD COLUMN IF NOT EXISTS positioning_similarity VARCHAR(20);
+    ALTER TABLE IF EXISTS competitors ADD COLUMN IF NOT EXISTS estimated_daily_spend VARCHAR(100);
+    ALTER TABLE IF EXISTS competitors ADD COLUMN IF NOT EXISTS spend_tier VARCHAR(20);
+    CREATE INDEX IF NOT EXISTS competitors_spend_tier_idx ON competitors (spend_tier);
+
+    -- ═══════════════════════════════════════════════════════════════════════════
+    -- ADS: add 20 new fields from Apify scraper and derived fields
+    -- ═══════════════════════════════════════════════════════════════════════════
+    ALTER TABLE IF EXISTS ads ADD COLUMN IF NOT EXISTS ad_archive_id VARCHAR(100);
+    ALTER TABLE IF EXISTS ads ADD COLUMN IF NOT EXISTS ad_text TEXT;
+    ALTER TABLE IF EXISTS ads ADD COLUMN IF NOT EXISTS ad_creative_bodies JSONB;
+    ALTER TABLE IF EXISTS ads ADD COLUMN IF NOT EXISTS publisher_platforms JSONB;
+    ALTER TABLE IF EXISTS ads ADD COLUMN IF NOT EXISTS ad_status VARCHAR(50);
+    ALTER TABLE IF EXISTS ads ADD COLUMN IF NOT EXISTS start_date TIMESTAMPTZ;
+    ALTER TABLE IF EXISTS ads ADD COLUMN IF NOT EXISTS end_date TIMESTAMPTZ;
+    ALTER TABLE IF EXISTS ads ADD COLUMN IF NOT EXISTS ad_creation_time TIMESTAMPTZ;
+    ALTER TABLE IF EXISTS ads ADD COLUMN IF NOT EXISTS estimated_audience_size VARCHAR(100);
+    ALTER TABLE IF EXISTS ads ADD COLUMN IF NOT EXISTS cta_domain VARCHAR(255);
+    ALTER TABLE IF EXISTS ads ADD COLUMN IF NOT EXISTS cta_headline VARCHAR(500);
+    ALTER TABLE IF EXISTS ads ADD COLUMN IF NOT EXISTS cta_description TEXT;
+    ALTER TABLE IF EXISTS ads ADD COLUMN IF NOT EXISTS ad_snapshot_url TEXT;
+    ALTER TABLE IF EXISTS ads ADD COLUMN IF NOT EXISTS ad_library_url TEXT;
+    ALTER TABLE IF EXISTS ads ADD COLUMN IF NOT EXISTS creative_type_enum VARCHAR(50);
+    ALTER TABLE IF EXISTS ads ADD COLUMN IF NOT EXISTS category_tag VARCHAR(50);
+    ALTER TABLE IF EXISTS ads ADD COLUMN IF NOT EXISTS extracted_price_str VARCHAR(100);
+    ALTER TABLE IF EXISTS ads ADD COLUMN IF NOT EXISTS discount_depth VARCHAR(50);
+    ALTER TABLE IF EXISTS ads ADD COLUMN IF NOT EXISTS is_high_focus BOOLEAN NOT NULL DEFAULT FALSE;
+    ALTER TABLE IF EXISTS ads ADD COLUMN IF NOT EXISTS roi_confidence VARCHAR(20);
+    CREATE INDEX IF NOT EXISTS ads_category_tag_idx ON ads (category_tag);
+    CREATE INDEX IF NOT EXISTS ads_is_high_focus_idx ON ads (is_high_focus);
+
+    -- ═══════════════════════════════════════════════════════════════════════════
+    -- FACEBOOK_POSTS: add granular reaction breakdown + engagement score
+    -- ═══════════════════════════════════════════════════════════════════════════
+    ALTER TABLE IF EXISTS facebook_posts ADD COLUMN IF NOT EXISTS likes INTEGER;
+    ALTER TABLE IF EXISTS facebook_posts ADD COLUMN IF NOT EXISTS views_count INTEGER;
+    ALTER TABLE IF EXISTS facebook_posts ADD COLUMN IF NOT EXISTS reaction_like_count INTEGER;
+    ALTER TABLE IF EXISTS facebook_posts ADD COLUMN IF NOT EXISTS reaction_love_count INTEGER;
+    ALTER TABLE IF EXISTS facebook_posts ADD COLUMN IF NOT EXISTS reaction_wow_count INTEGER;
+    ALTER TABLE IF EXISTS facebook_posts ADD COLUMN IF NOT EXISTS reaction_haha_count INTEGER;
+    ALTER TABLE IF EXISTS facebook_posts ADD COLUMN IF NOT EXISTS reaction_care_count INTEGER;
+    ALTER TABLE IF EXISTS facebook_posts ADD COLUMN IF NOT EXISTS media_type VARCHAR(50);
+    ALTER TABLE IF EXISTS facebook_posts ADD COLUMN IF NOT EXISTS thumbnail_url TEXT;
+    ALTER TABLE IF EXISTS facebook_posts ADD COLUMN IF NOT EXISTS engagement_score NUMERIC(10,4);
+
+    -- ═══════════════════════════════════════════════════════════════════════════
+    -- NEW TABLE: market_snapshots — daily market aggregates
+    -- ═══════════════════════════════════════════════════════════════════════════
+    CREATE TABLE IF NOT EXISTS market_snapshots (
+      id                  SERIAL PRIMARY KEY,
+      snapshot_date       DATE NOT NULL,
+      total_active_ads    INTEGER NOT NULL DEFAULT 0,
+      active_advertisers  INTEGER NOT NULL DEFAULT 0,
+      total_competitors   INTEGER NOT NULL DEFAULT 0,
+      market_leader_id    INTEGER REFERENCES competitors(id) ON DELETE SET NULL,
+      client_ad_count     INTEGER NOT NULL DEFAULT 0,
+      client_sov          NUMERIC(5,2),
+      created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+    CREATE UNIQUE INDEX IF NOT EXISTS market_snapshots_snapshot_date_idx ON market_snapshots (snapshot_date);
+    CREATE INDEX IF NOT EXISTS market_snapshots_market_leader_idx ON market_snapshots (market_leader_id);
+
+    -- ═══════════════════════════════════════════════════════════════════════════
+    -- NEW TABLE: competitor_segments — explicit segment targeting
+    -- ═══════════════════════════════════════════════════════════════════════════
+    CREATE TABLE IF NOT EXISTS competitor_segments (
+      id              SERIAL PRIMARY KEY,
+      competitor_id   INTEGER NOT NULL REFERENCES competitors(id) ON DELETE CASCADE,
+      segment_name    VARCHAR(50) NOT NULL,
+      is_active       BOOLEAN NOT NULL DEFAULT TRUE,
+      created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+    CREATE UNIQUE INDEX IF NOT EXISTS competitor_segments_comp_seg_idx ON competitor_segments (competitor_id, segment_name);
+    CREATE INDEX IF NOT EXISTS competitor_segments_competitor_id_idx ON competitor_segments (competitor_id);
+    CREATE INDEX IF NOT EXISTS competitor_segments_segment_name_idx ON competitor_segments (segment_name);
+
+    -- ═══════════════════════════════════════════════════════════════════════════
+    -- NEW TABLE: report_alerts — report-level alert dashboard
+    -- ═══════════════════════════════════════════════════════════════════════════
+    CREATE TABLE IF NOT EXISTS report_alerts (
+      id              SERIAL PRIMARY KEY,
+      alert_date      DATE NOT NULL,
+      severity        VARCHAR(20) NOT NULL DEFAULT 'info',
+      competitor_id   INTEGER REFERENCES competitors(id) ON DELETE SET NULL,
+      alert_type      VARCHAR(50) NOT NULL,
+      message         TEXT NOT NULL,
+      message_thai    TEXT,
+      is_actionable   BOOLEAN NOT NULL DEFAULT FALSE,
+      created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+    CREATE INDEX IF NOT EXISTS report_alerts_alert_date_idx ON report_alerts (alert_date);
+    CREATE INDEX IF NOT EXISTS report_alerts_competitor_id_idx ON report_alerts (competitor_id);
+    CREATE INDEX IF NOT EXISTS report_alerts_severity_idx ON report_alerts (severity);
+    CREATE INDEX IF NOT EXISTS report_alerts_is_actionable_idx ON report_alerts (is_actionable);
+  `);
+
+  log.info('Schema push complete — all 14 tables and indexes are up to date');
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

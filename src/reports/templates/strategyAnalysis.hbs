@@ -1,0 +1,136 @@
+<div class="page-break">
+  <h2>Strategy Analysis / วิเคราะห์กลยุทธ์</h2>
+
+  {{#if strategyAnalysis.hasLlmData}}
+  <p style="font-size:.85rem;color:var(--gray-500);margin-bottom:1rem;">
+    <span class="badge badge-info">AI-Enhanced</span> Analysis powered by LLM market intelligence
+  </p>
+  {{/if}}
+
+  {{!-- Market Leader Profile --}}
+  {{#if strategyAnalysis.leaderProfile}}
+  <div class="card card-navy mt-2 no-break">
+    <h3 style="color:var(--gold);margin-top:0;">👑 Market Leader / ผู้นำตลาด: {{strategyAnalysis.leaderProfile.name}}</h3>
+    <div class="grid-2">
+      <div>
+        <div style="font-size:.85rem;">
+          <div>Health Score: <strong style="color:var(--gold);">{{round strategyAnalysis.leaderProfile.totalScore 0}}/100</strong></div>
+          <div>Paid Score: <strong>{{round strategyAnalysis.leaderProfile.paidScore 0}}</strong></div>
+          <div>Organic Score: <strong>{{round strategyAnalysis.leaderProfile.organicScore 0}}</strong></div>
+          <div>Active Ads: <strong>{{strategyAnalysis.leaderProfile.activeAds}}</strong></div>
+          <div>Followers: <strong>{{formatNumber strategyAnalysis.leaderProfile.followers}}</strong></div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:.85rem;">
+          <div><small>Strategy:</small> <strong>{{strategyAnalysis.leaderProfile.strategy}}</strong></div>
+          <div style="margin-top:.4rem;"><small>Key USP:</small> <strong>{{strategyAnalysis.leaderProfile.usp}}</strong></div>
+          {{#if strategyAnalysis.leaderProfile.targetSegments.length}}
+          <div style="margin-top:.4rem;">
+            <small>Targets:</small>
+            {{#each strategyAnalysis.leaderProfile.targetSegments}}
+            <span class="badge badge-info" style="margin:2px;">{{this}}</span>
+            {{/each}}
+          </div>
+          {{/if}}
+        </div>
+      </div>
+    </div>
+  </div>
+  {{/if}}
+
+  {{!-- Dominant Strategies --}}
+  <div class="section mt-2">
+    <h3>Dominant Strategies / กลยุทธ์ที่โดดเด่น</h3>
+    {{#each strategyAnalysis.dominantStrategies}}
+    <div class="card no-break" style="padding:.6rem 1rem;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <strong>{{strategy}}</strong>
+          <div style="font-size:.8rem;color:var(--gray-500);margin-top:.2rem;">
+            Used by: {{join users ", "}}{{#if (gt count 3)}} +{{subtract count 3}} more{{/if}}
+          </div>
+        </div>
+        <div style="text-align:right;">
+          <span style="font-size:1.2rem;font-weight:700;color:var(--navy);">{{count}}</span>
+          <br/><small>{{pct}}% of market</small>
+        </div>
+      </div>
+      <div class="progress-bar mt-1">
+        <div class="progress-fill" style="width:{{pct}}%;background:var(--navy);"></div>
+      </div>
+    </div>
+    {{else}}
+    <div class="card"><small style="color:var(--gray-500);">No strategy data available yet.</small></div>
+    {{/each}}
+  </div>
+
+  {{!-- Top Challengers --}}
+  {{#if strategyAnalysis.topChallengers.length}}
+  <div class="section mt-2">
+    <h3>Top Rising Challengers / คู่แข่งที่กำลังก้าวขึ้นมา</h3>
+    <div class="grid-3">
+      {{#each strategyAnalysis.topChallengers}}
+      <div class="card text-center no-break" style="border-top:3px solid var(--green);">
+        <strong>{{name}}</strong>
+        <p style="font-size:1.4rem;margin:.3rem 0;color:var(--green);">{{round score 0}}</p>
+        <small style="color:var(--gray-500);">{{strategy}}</small>
+      </div>
+      {{/each}}
+    </div>
+  </div>
+  {{/if}}
+
+  {{!-- Top USPs in Market --}}
+  {{#if strategyAnalysis.topUSPs.length}}
+  <div class="section mt-2">
+    <h3>Market USPs / จุดขายที่โดดเด่นในตลาด</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Unique Selling Proposition</th>
+          <th>Competitors Using</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each strategyAnalysis.topUSPs}}
+        <tr class="no-break">
+          <td>{{usp}}</td>
+          <td><strong>{{count}}</strong></td>
+        </tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+  {{/if}}
+
+  {{!-- Key Insights --}}
+  <div class="section mt-2">
+    <h3>Key Market Insights / ข้อมูลเชิงลึกสำคัญ</h3>
+    {{#each strategyAnalysis.keyInsights}}
+    <div class="card no-break" style="border-left:3px solid var(--navy);padding:.6rem 1rem;">
+      <p style="margin:0;font-size:.9rem;">{{this}}</p>
+    </div>
+    {{/each}}
+
+    {{!-- LLM Risk Factors --}}
+    {{#if strategyAnalysis.llmRiskFactors.length}}
+    <h4 style="margin-top:1rem;color:var(--red);">Risk Factors / ปัจจัยเสี่ยง</h4>
+    {{#each strategyAnalysis.llmRiskFactors}}
+    <div class="card no-break" style="border-left:3px solid var(--red);padding:.6rem 1rem;">
+      <p style="margin:0;font-size:.9rem;">{{this}}</p>
+    </div>
+    {{/each}}
+    {{/if}}
+  </div>
+
+  {{!-- LLM Market Overview --}}
+  {{#if strategyAnalysis.llmMarketOverview}}
+  <div class="section mt-2">
+    <h3>Market Overview / ภาพรวมตลาด <span class="badge badge-info">AI</span></h3>
+    <div class="card no-break">
+      <p style="font-size:.9rem;line-height:1.6;">{{strategyAnalysis.llmMarketOverview}}</p>
+    </div>
+  </div>
+  {{/if}}
+</div>

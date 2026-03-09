@@ -21,8 +21,11 @@ import {
     getTodayAlerts,
     getMarketOverview,
     getShareOfVoice,
+    getMarketAdHistory,
     insertReport,
 } from '../db/queries.js';
+import { RecommendationEngine } from '../analysis/recommendations.js';
+import { generateMarketIntelligence } from '../intelligence/llmAnalyzer.js';
 import { AlertSeverity } from '../types/index.js';
 import type {
     ReportData,
@@ -151,6 +154,79 @@ export class ReportService {
             }
         } catch (err) {
             log.warn('Apify social media aggregation failed — report will omit that section', {
+                error: err instanceof Error ? err.message : String(err),
+            });
+        }
+
+        // ── Market Ad History ─────────────────────────────────────────────────
+        try {
+            const marketAdHistory = await getMarketAdHistory(30);
+            (reportData as any).marketAdHistory = marketAdHistory;
+            log.info('Market ad history loaded', { points: marketAdHistory.length });
+        } catch (err) {
+            log.warn('Failed to load market ad history', {
+                error: err instanceof Error ? err.message : String(err),
+            });
+        }
+
+        // ── Recommendations (customer only) ───────────────────────────────────
+        try {
+            const customerSummary = competitorSummaries.find((c) => c.competitor.isCustomer);
+            if (customerSummary && customerSummary.latestAnalysis) {
+                const recEngine = new RecommendationEngine();
+                const customerData = {
+                    competitor: customerSummary.competitor,
+                    analysis: customerSummary.latestAnalysis,
+                    healthScore: null,
+                    pageMetrics: customerSummary.pageMetrics,
+                };
+                const avgAdCount = competitorSummaries.reduce(
+                    (s, c) => s + (c.latestAnalysis?.totalActiveAds ?? 0), 0,
+                ) / (competitorSummaries.length || 1);
+                const avgEngagementRate = competitorSummaries.reduce(
+                    (s, c) => s + (c.pageMetrics?.avgEngagementRate ?? 0), 0,
+                ) / (competitorSummaries.length || 1);
+                const avgFollowers = competitorSummaries.reduce(
+                    (s, c) => s + (c.pageMetrics?.followers ?? 0), 0,
+                ) / (competitorSummaries.length || 1);
+                const marketData = {
+                    analyses: competitorSummaries
+                        .filter((c) => c.latestAnalysis)
+                        .map((c) => ({ competitor: c.competitor, analysis: c.latestAnalysis! })),
+                    healthScores: [],
+                    leader: null,
+                    avgAdCount,
+                    avgEngagementRate,
+                    avgFollowers,
+                    avgHealthScore: marketOverview.avgHealthScore,
+                    recentAlerts: alerts,
+                    trends,
+                    segmentSaturation: new Map(),
+                };
+                const recs = await recEngine.generateRecommendations(customerData, marketData);
+                reportData.recommendations = recs;
+                log.info('Recommendations generated', { count: recs.length });
+            }
+        } catch (err) {
+            log.warn('Recommendation generation failed — report will use empty recommendations', {
+                error: err instanceof Error ? err.message : String(err),
+            });
+        }
+
+        // ── LLM Market Intelligence ───────────────────────────────────────────
+        try {
+            const competitorInputs = competitorSummaries.map((c) => ({
+                name: c.competitor.name,
+                analysis: c.latestAnalysis,
+                pageMetrics: c.pageMetrics,
+                topAds: c.topAds,
+                topPosts: c.topPosts,
+            }));
+            const llmMarketIntel = await generateMarketIntelligence(competitorInputs);
+            (reportData as any).llmMarketIntel = llmMarketIntel;
+            log.info('LLM market intelligence attached to report data');
+        } catch (err) {
+            log.warn('LLM market intelligence failed — report will use rule-based fallbacks', {
                 error: err instanceof Error ? err.message : String(err),
             });
         }

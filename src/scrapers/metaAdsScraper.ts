@@ -249,7 +249,7 @@ function normalizeAd(raw: any, competitorName: string): NormalizedAd {
     const adText = (() => {
         if (Array.isArray(raw.adCreativeBodies)) {
             const bodies = (raw.adCreativeBodies as string[]).filter(Boolean);
-            if (bodies.length > 0) return bodies[0];
+            if (bodies.length > 0) return bodies[0]!;
         }
         return String(raw.adText ?? raw.adCreativeBody ?? raw.ad_creative_body ?? raw.body ?? raw.text ?? '');
     })();

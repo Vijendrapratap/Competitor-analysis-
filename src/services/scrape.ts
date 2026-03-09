@@ -82,6 +82,27 @@ function mapApifyAdToNewAd(
         language: null,
         screenshotPath: null,
         scrapedAt: new Date(),
+        // ── NEW FIELDS (002_schema_enhancements) ────────────────────────────
+        adArchiveId: null,
+        adText: null,
+        adCreativeBodies: null,
+        publisherPlatforms: null,
+        adStatus: null,
+        startDate: null,
+        endDate: null,
+        adCreationTime: null,
+        estimatedAudienceSize: null,
+        ctaDomain: null,
+        ctaHeadline: null,
+        ctaDescription: null,
+        adSnapshotUrl: null,
+        adLibraryUrl: null,
+        creativeTypeEnum: null,
+        categoryTag: null,
+        extractedPriceStr: null,
+        discountDepth: null,
+        isHighFocus: false,
+        roiConfidence: null,
     };
 }
 
@@ -107,6 +128,17 @@ function mapApifyPostToNewPost(
         language: null,
         isTopPerformer: false,
         scrapedAt: new Date(),
+        // ── NEW FIELDS (002_schema_enhancements) ────────────────────────────
+        likes: null,
+        viewsCount: null,
+        reactionLikeCount: null,
+        reactionLoveCount: null,
+        reactionWowCount: null,
+        reactionHahaCount: null,
+        reactionCareCount: null,
+        mediaType: null,
+        thumbnailUrl: null,
+        engagementScore: null,
     };
 }
 
