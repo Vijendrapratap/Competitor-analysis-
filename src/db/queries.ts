@@ -4,6 +4,7 @@
 
 import {
   and,
+  asc,
   avg,
   count,
   desc,
@@ -887,4 +888,19 @@ export async function getShareOfVoice(): Promise<ShareOfVoiceEntry[]> {
         ? Math.round((r.totalActiveAds / grandTotal) * 10000) / 100
         : 0,
   }));
+}
+
+export async function getMarketAdHistory(days = 30): Promise<{ date: string; totalAds: number }[]> {
+  const since = new Date();
+  since.setDate(since.getDate() - days);
+  const rows = await db
+    .select({
+      date: analyses.analysisDate,
+      total: sql<number>`sum(${analyses.totalActiveAds})`,
+    })
+    .from(analyses)
+    .where(gte(analyses.analysisDate, since))
+    .groupBy(analyses.analysisDate)
+    .orderBy(asc(analyses.analysisDate));
+  return rows.map((r) => ({ date: String(r.date), totalAds: Number(r.total) }));
 }

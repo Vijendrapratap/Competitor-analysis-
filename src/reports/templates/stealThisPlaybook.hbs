@@ -1,0 +1,58 @@
+<div class="page-break">
+  <h2>"Steal This" Playbook / กลยุทธ์ที่ควรนำมาใช้</h2>
+
+  <p style="color:var(--gray-500);font-size:.9rem;margin-bottom:1rem;">
+    Proven strategies from top-performing competitors in your market — adapted for your brand.
+    {{#if stealThisPlaybook.hasLlmData}}<span class="badge badge-info">AI-Enhanced</span>{{/if}}
+  </p>
+
+  {{#each stealThisPlaybook.strategies}}
+  <div class="rec-card rec-important no-break mt-1">
+    <div style="display:flex;justify-content:space-between;align-items:start;">
+      <h4 style="margin:0;color:var(--navy);">{{rank}}. {{strategyName}}</h4>
+      <div>
+        <span class="badge badge-warning">Impact: {{estimatedImpact}}</span>
+        <span class="badge badge-info" style="margin-left:.3rem;">{{round (mul roiConfidence 100) 0}}% confidence</span>
+      </div>
+    </div>
+
+    <p style="margin:.6rem 0;font-size:.9rem;">{{description}}</p>
+
+    {{#if whoDoesIt.length}}
+    <div style="margin:.4rem 0;">
+      <small style="color:var(--gray-500);">Used by: </small>
+      {{#each whoDoesIt}}
+      <span class="badge badge-info" style="margin:2px;">{{this}}</span>
+      {{/each}}
+    </div>
+    {{/if}}
+
+    {{#if howToSteal.length}}
+    <div class="mt-1">
+      <strong style="font-size:.85rem;color:var(--navy);">How to execute / วิธีดำเนินการ:</strong>
+      <ul style="margin:.3rem 0;padding-left:1.2rem;font-size:.85rem;">
+        {{#each howToSteal}}
+        <li>{{this}}</li>
+        {{/each}}
+      </ul>
+    </div>
+    {{/if}}
+  </div>
+  {{else}}
+  <div class="card mt-2 text-center">
+    <p style="color:var(--gray-500);">Insufficient competitor data to generate playbook recommendations.</p>
+  </div>
+  {{/each}}
+
+  {{!-- Market Opportunities from LLM --}}
+  {{#if stealThisPlaybook.marketOpportunities.length}}
+  <div class="section mt-2">
+    <h3>Market Opportunities / โอกาสทางตลาด</h3>
+    {{#each stealThisPlaybook.marketOpportunities}}
+    <div class="card no-break" style="border-left:3px solid var(--green);padding:.7rem 1rem;">
+      <p style="margin:0;font-size:.9rem;">{{this}}</p>
+    </div>
+    {{/each}}
+  </div>
+  {{/if}}
+</div>

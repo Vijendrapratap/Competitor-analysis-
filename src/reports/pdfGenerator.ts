@@ -159,9 +159,16 @@ interface CompiledTemplates {
   base: Handlebars.TemplateDelegate;
   cover: Handlebars.TemplateDelegate;
   executiveBrief: Handlebars.TemplateDelegate;
+  marketMomentum: Handlebars.TemplateDelegate;
   healthLeaderboard: Handlebars.TemplateDelegate;
-  customerComparison: Handlebars.TemplateDelegate;
+  threatMatrix: Handlebars.TemplateDelegate;
   shareOfVoice: Handlebars.TemplateDelegate;
+  pricingBattlefield: Handlebars.TemplateDelegate;
+  promotionCalendar: Handlebars.TemplateDelegate;
+  stealThisPlaybook: Handlebars.TemplateDelegate;
+  creativeIntelligence: Handlebars.TemplateDelegate;
+  strategyAnalysis: Handlebars.TemplateDelegate;
+  customerComparison: Handlebars.TemplateDelegate;
   socialMediaIntel: Handlebars.TemplateDelegate;
   competitorProfile: Handlebars.TemplateDelegate;
   alerts: Handlebars.TemplateDelegate;
@@ -181,9 +188,16 @@ function loadTemplates(): CompiledTemplates {
     base: load('base'),
     cover: load('cover'),
     executiveBrief: load('executiveBrief'),
+    marketMomentum: load('marketMomentum'),
     healthLeaderboard: load('healthLeaderboard'),
-    customerComparison: load('customerComparison'),
+    threatMatrix: load('threatMatrix'),
     shareOfVoice: load('shareOfVoice'),
+    pricingBattlefield: load('pricingBattlefield'),
+    promotionCalendar: load('promotionCalendar'),
+    stealThisPlaybook: load('stealThisPlaybook'),
+    creativeIntelligence: load('creativeIntelligence'),
+    strategyAnalysis: load('strategyAnalysis'),
+    customerComparison: load('customerComparison'),
     socialMediaIntel: load('socialMediaIntel'),
     competitorProfile: load('competitorProfile'),
     alerts: load('alerts'),
@@ -195,11 +209,13 @@ function loadTemplates(): CompiledTemplates {
 // Data preparation helpers
 // ─────────────────────────────────────────────────────────────────────────────
 
-function buildLeaderboard(data: ReportData) {
-  return data.healthScoreRankings.map((r) => {
+function buildLeaderboard(data: ReportData, historicalScores?: Map<string, number>) {
+  const entries = data.healthScoreRankings.map((r) => {
     const summary = data.competitors.find(
       (c) => c.competitor.name === r.competitorName,
     );
+    const prevScore = historicalScores?.get(r.competitorName);
+    const change = prevScore != null ? r.totalScore - prevScore : 0;
     return {
       rank: r.rank,
       name: r.competitorName,
@@ -210,8 +226,23 @@ function buildLeaderboard(data: ReportData) {
       isCustomer: summary?.competitor.isCustomer ?? false,
       category: summary?.competitor.category ?? '',
       strategyEn: summary?.latestAnalysis?.marketingStrategyEn ?? '—',
+      previousScore: prevScore ?? null,
+      currentScore: r.totalScore,
+      change,
     };
   });
+
+  const withChange = entries.filter((e) => e.change !== 0);
+  const biggestRisers = [...withChange]
+    .filter((e) => e.change > 0)
+    .sort((a, b) => b.change - a.change)
+    .slice(0, 3);
+  const biggestFallers = [...withChange]
+    .filter((e) => e.change < 0)
+    .sort((a, b) => a.change - b.change)
+    .slice(0, 3);
+
+  return { entries, biggestRisers, biggestFallers };
 }
 
 function buildAlertSummary(data: ReportData) {
@@ -542,6 +573,529 @@ function buildSocialMediaIntelContext(data: ReportData) {
 // PDFReportGenerator
 // ─────────────────────────────────────────────────────────────────────────────
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Alert mapper — bridge DB Alert fields to template field names
+// ─────────────────────────────────────────────────────────────────────────────
+
+function mapAlertForTemplate(a: Alert) {
+  return {
+    ...a,
+    titleEn: a.title,
+    descriptionEn: a.description,
+    descriptionTh: a.description,
+    detectedAt: a.alertDate,
+    affectedCompetitors: (a as any).competitorName
+      ? [(a as any).competitorName]
+      : [`Competitor #${a.competitorId}`],
+  };
+}
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+// NEW: Market Momentum data builder
+// ─────────────────────────────────────────────────────────────────────────────
+
+function buildMarketMomentum(data: ReportData) {
+  const marketAdHistory: Array<{ date: string; totalAds: number }> =
+    (data as any).marketAdHistory ?? [];
+
+  const totalAdsToday = data.marketOverview.totalActiveAds;
+  const totalAdsLastWeek = marketAdHistory.length >= 7
+    ? (marketAdHistory[marketAdHistory.length - 7]?.totalAds ?? totalAdsToday)
+    : totalAdsToday;
+  const adsChangePct = totalAdsLastWeek > 0
+    ? round(((totalAdsToday - totalAdsLastWeek) / totalAdsLastWeek) * 100, 1)
+    : 0;
+
+  const newEntrants = data.competitors
+    .filter((c) => c.latestAnalysis?.trend === 'new')
+    .map((c) => ({ name: c.competitor.name, category: c.competitor.category }));
+
+  const risingCompetitors = data.healthScoreRankings
+    .filter((r) => r.trend === 'rising')
+    .slice(0, 5)
+    .map((r) => ({ name: r.competitorName, score: r.totalScore }));
+
+  const topSOV = data.competitors
+    .filter((c) => c.latestAnalysis?.shareOfVoice != null)
+    .sort((a, b) => (b.latestAnalysis!.shareOfVoice!) - (a.latestAnalysis!.shareOfVoice!))
+    .slice(0, 5)
+    .map((c) => ({
+      name: c.competitor.name,
+      sov: round(c.latestAnalysis!.shareOfVoice!, 1),
+      isCustomer: c.competitor.isCustomer,
+    }));
+
+  const activeAdvertisers = data.competitors.filter(
+    (c) => (c.latestAnalysis?.totalActiveAds ?? 0) > 0,
+  ).length;
+
+  return {
+    totalAdsToday,
+    totalAdsLastWeek,
+    adsChangePct,
+    adsChangePositive: adsChangePct >= 0,
+    activeAdvertisers,
+    totalCompetitors: data.marketOverview.totalCompetitors,
+    newEntrants,
+    newEntrantsCount: newEntrants.length,
+    risingCompetitors,
+    topSOV,
+    marketAdHistory,
+    hasHistory: marketAdHistory.length > 1,
+  };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// NEW: Threat Assessment Matrix data builder
+// ─────────────────────────────────────────────────────────────────────────────
+
+function buildThreatMatrix(data: ReportData) {
+  const THREAT_SCORE: Record<string, number> = {
+    critical: 4, high: 3, medium: 2, low: 1,
+  };
+
+  const entries = data.competitors.map((c) => {
+    const level = c.latestAnalysis?.threatLevel ?? 'low';
+    const sov = c.latestAnalysis?.shareOfVoice ?? 0;
+    return {
+      name: c.competitor.name,
+      threatLevel: level,
+      threatScore: THREAT_SCORE[level] ?? 1,
+      shareOfVoice: round(sov, 1),
+      isCustomer: c.competitor.isCustomer,
+      category: c.competitor.category,
+    };
+  });
+
+  const avgSov = entries.reduce((s, e) => s + e.shareOfVoice, 0) / (entries.length || 1);
+  const sovThreshold = Math.max(avgSov, 5);
+
+  const quadrants = {
+    highThreatHighSov: entries.filter((e) => e.threatScore >= 3 && e.shareOfVoice >= sovThreshold),
+    highThreatLowSov: entries.filter((e) => e.threatScore >= 3 && e.shareOfVoice < sovThreshold),
+    lowThreatHighSov: entries.filter((e) => e.threatScore < 3 && e.shareOfVoice >= sovThreshold),
+    lowThreatLowSov: entries.filter((e) => e.threatScore < 3 && e.shareOfVoice < sovThreshold),
+  };
+
+  return {
+    entries,
+    quadrants,
+    sovThreshold: round(sovThreshold, 1),
+    criticalCount: entries.filter((e) => e.threatLevel === 'critical').length,
+    highCount: entries.filter((e) => e.threatLevel === 'high').length,
+    mediumCount: entries.filter((e) => e.threatLevel === 'medium').length,
+    lowCount: entries.filter((e) => e.threatLevel === 'low').length,
+  };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// NEW: Pricing Battlefield data builder
+// ─────────────────────────────────────────────────────────────────────────────
+
+function buildPricingBattlefield(data: ReportData) {
+  const withPricing = data.competitors
+    .filter((c) => c.latestAnalysis?.pricingData?.averageRate != null)
+    .map((c) => {
+      const pd = c.latestAnalysis!.pricingData!;
+      return {
+        name: c.competitor.name,
+        isCustomer: c.competitor.isCustomer,
+        category: c.competitor.category,
+        minPrice: pd.lowestRate ?? 0,
+        avgPrice: pd.averageRate ?? 0,
+        maxPrice: pd.highestRate ?? 0,
+        currency: pd.currency ?? 'THB',
+        hasPromotion: (pd.discounts?.length ?? 0) > 0,
+        promotionDetail: pd.discounts?.[0]?.description ?? null,
+        roomRateCount: pd.roomRates?.length ?? 0,
+      };
+    })
+    .sort((a, b) => a.avgPrice - b.avgPrice);
+
+  if (withPricing.length === 0) {
+    return { entries: [], hasPricingData: false, marketMinPrice: 0, marketAvgPrice: 0, marketMaxPrice: 0, currency: 'THB', premiumCount: 0, midRangeCount: 0, budgetCount: 0 };
+  }
+
+  const allAvgs = withPricing.map((e) => e.avgPrice).filter((p) => p > 0);
+  const marketAvgPrice = allAvgs.reduce((s, p) => s + p, 0) / (allAvgs.length || 1);
+  const marketMinPrice = Math.min(...withPricing.map((e) => e.minPrice).filter((p) => p > 0), 99999);
+  const marketMaxPrice = Math.max(...withPricing.map((e) => e.maxPrice), 0);
+  const currency = withPricing[0]?.currency ?? 'THB';
+
+  const entriesWithPosition = withPricing.map((e) => ({
+    ...e,
+    positionLabel: e.avgPrice > marketAvgPrice * 1.15
+      ? 'Premium'
+      : e.avgPrice < marketAvgPrice * 0.85
+        ? 'Budget'
+        : 'Mid-Range',
+    pctAboveMarket: round(((e.avgPrice - marketAvgPrice) / marketAvgPrice) * 100, 0),
+  }));
+
+  return {
+    entries: entriesWithPosition,
+    hasPricingData: true,
+    marketMinPrice: round(marketMinPrice === 99999 ? 0 : marketMinPrice, 0),
+    marketAvgPrice: round(marketAvgPrice, 0),
+    marketMaxPrice: round(marketMaxPrice, 0),
+    currency,
+    premiumCount: entriesWithPosition.filter((e) => e.positionLabel === 'Premium').length,
+    midRangeCount: entriesWithPosition.filter((e) => e.positionLabel === 'Mid-Range').length,
+    budgetCount: entriesWithPosition.filter((e) => e.positionLabel === 'Budget').length,
+  };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// NEW: Promotion Calendar data builder
+// ─────────────────────────────────────────────────────────────────────────────
+
+const PROMO_PATTERNS: Record<string, RegExp> = {
+  'Early Bird': /\b(?:early bird|book early|advance booking)\b/i,
+  'Last Minute': /\b(?:last minute|flash sale|limited time|today only)\b/i,
+  'Discount': /\b(?:\d{1,2}%\s*off|save\s+\d|discount|special rate)\b/i,
+  'Free Night': /\b(?:free night|stay \d.*free)\b/i,
+  'Package Deal': /\b(?:package|bundle|inclusive|all-inclusive)\b/i,
+  'Seasonal': /\b(?:songkran|christmas|new year|valentine|summer|holiday|festival)\b/i,
+  'Breakfast': /\b(?:breakfast included|free breakfast)\b/i,
+  'Spa': /\b(?:spa credit|spa included|free massage)\b/i,
+};
+
+function buildPromoCalendar(data: ReportData) {
+  const activePromos: Array<{
+    name: string; promoType: string; snippet: string; isCustomer: boolean;
+  }> = [];
+
+  for (const c of data.competitors) {
+    const allTexts = c.topAds.map((a) => `${a.headline ?? ''} ${a.adCopy ?? ''}`);
+    const detectedTypes = new Set<string>();
+    for (const text of allTexts) {
+      for (const [type, regex] of Object.entries(PROMO_PATTERNS)) {
+        if (regex.test(text)) detectedTypes.add(type);
+      }
+    }
+    for (const promoType of detectedTypes) {
+      const matchingAd = allTexts.find((t) => PROMO_PATTERNS[promoType]!.test(t));
+      activePromos.push({
+        name: c.competitor.name,
+        promoType,
+        snippet: truncate(matchingAd ?? '', 100),
+        isCustomer: c.competitor.isCustomer,
+      });
+    }
+  }
+
+  const promoTypeCounts = new Map<string, number>();
+  for (const p of activePromos) {
+    promoTypeCounts.set(p.promoType, (promoTypeCounts.get(p.promoType) ?? 0) + 1);
+  }
+  const promoTypeSummary = [...promoTypeCounts.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .map(([type, count]) => ({ type, count }));
+
+  const activePromoters = new Set(activePromos.map((p) => p.name)).size;
+
+  return {
+    activePromos: activePromos.slice(0, 30),
+    promoTypeSummary,
+    activePromoCount: activePromos.length,
+    activePromoters,
+    totalCompetitors: data.marketOverview.totalCompetitors,
+    hasPromos: activePromos.length > 0,
+  };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// NEW: Steal This Playbook data builder
+// ─────────────────────────────────────────────────────────────────────────────
+
+function buildStealThisPlaybook(data: ReportData) {
+  const llmIntel = (data as any).llmMarketIntel;
+
+  if (llmIntel?.playbook?.length) {
+    return {
+      strategies: (llmIntel.playbook as any[]).slice(0, 5).map((item: any, i: number) => ({
+        rank: i + 1,
+        strategyName: item.strategy_name ?? item.title ?? `Strategy ${i + 1}`,
+        description: item.description ?? item.rationale ?? '',
+        whoDoesIt: item.who_does_it ?? item.competitor_examples ?? [],
+        roiConfidence: item.roi_confidence ?? item.confidence ?? 0.7,
+        howToSteal: item.how_to_steal ?? item.implementation_steps ?? [],
+        estimatedImpact: item.estimated_impact ?? item.impact ?? 'Medium',
+      })),
+      hasLlmData: true,
+      marketOpportunities: (llmIntel.gaps_and_opportunities ?? []).slice(0, 3),
+    };
+  }
+
+  // Rule-based fallback
+  const strategies: Array<{
+    rank: number; strategyName: string; description: string;
+    whoDoesIt: string[]; roiConfidence: number; howToSteal: string[]; estimatedImpact: string;
+  }> = [];
+
+  const strategyFreq = new Map<string, string[]>();
+  for (const c of data.competitors) {
+    const s = c.latestAnalysis?.marketingStrategyEn;
+    if (s) {
+      if (!strategyFreq.has(s)) strategyFreq.set(s, []);
+      strategyFreq.get(s)!.push(c.competitor.name);
+    }
+  }
+  const topStrategy = [...strategyFreq.entries()].sort((a, b) => b[1].length - a[1].length)[0];
+  if (topStrategy) {
+    strategies.push({
+      rank: 1,
+      strategyName: topStrategy[0],
+      description: `The most adopted strategy in the market — used by ${topStrategy[1].length} competitors.`,
+      whoDoesIt: topStrategy[1].slice(0, 3),
+      roiConfidence: 0.75,
+      howToSteal: [
+        'Study execution from top performers using this strategy',
+        'Identify what differentiates their creative approach',
+        'Adapt to your brand voice and primary target segments',
+      ],
+      estimatedImpact: 'High',
+    });
+  }
+
+  const promoUsers = data.competitors
+    .filter((c) => c.topAds.some((a) =>
+      /\b(?:discount|special rate|\d{1,2}%\s*off|package)\b/i.test(`${a.headline ?? ''} ${a.adCopy ?? ''}`),
+    ) && (c.pageMetrics?.avgEngagementRate ?? 0) > 2)
+    .slice(0, 3);
+
+  if (promoUsers.length > 0) {
+    strategies.push({
+      rank: 2,
+      strategyName: 'Promotional Offers + High-Engagement Content Mix',
+      description: 'Combining targeted discount campaigns with engaging organic content drives both conversions and brand recall.',
+      whoDoesIt: promoUsers.map((c) => c.competitor.name),
+      roiConfidence: 0.8,
+      howToSteal: [
+        'Run 10–20% off promotions on Meta Ads targeting past website visitors',
+        'Pair with behind-the-scenes / guest-story organic posts for authenticity',
+        'Retarget engaged users with offers within 7 days of interaction',
+      ],
+      estimatedImpact: 'High',
+    });
+  }
+
+  const multiFormatUsers = data.competitors
+    .filter((c) => (c.latestAnalysis?.adTypes?.length ?? 0) >= 2)
+    .slice(0, 3);
+  if (multiFormatUsers.length > 0) {
+    strategies.push({
+      rank: 3,
+      strategyName: 'Multi-Format Creative Strategy',
+      description: 'Using video + image + carousel ads in combination maximises reach across different audience segments.',
+      whoDoesIt: multiFormatUsers.map((c) => c.competitor.name),
+      roiConfidence: 0.7,
+      howToSteal: [
+        'Create a video showcasing your best room, pool, or facility (15–30s)',
+        'Run carousel ads for package deals (swipe to see inclusions)',
+        'Use static images for time-sensitive promotional offers',
+      ],
+      estimatedImpact: 'Medium',
+    });
+  }
+
+  return {
+    strategies: strategies.slice(0, 5),
+    hasLlmData: false,
+    marketOpportunities: [],
+  };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// NEW: Creative Intelligence data builder
+// ─────────────────────────────────────────────────────────────────────────────
+
+function buildCreativeIntelligence(data: ReportData) {
+  const formatTotals = new Map<string, number>();
+  for (const c of data.competitors) {
+    for (const t of c.latestAnalysis?.adTypes ?? []) {
+      formatTotals.set(t.type, (formatTotals.get(t.type) ?? 0) + t.count);
+    }
+  }
+  const formatTotal = [...formatTotals.values()].reduce((s, v) => s + v, 0) || 1;
+  const formatEffectiveness = [...formatTotals.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .map(([format, count]) => ({
+      format,
+      count,
+      pct: round((count / formatTotal) * 100, 0),
+      label: format.charAt(0).toUpperCase() + format.slice(1),
+    }));
+
+  const byPostType = new Map<string, number[]>();
+  for (const c of data.competitors) {
+    for (const post of c.topPosts) {
+      const type = String(post.postType ?? 'unknown');
+      const eng = (post.reactions ?? 0) + (post.comments ?? 0) + (post.shares ?? 0);
+      if (!byPostType.has(type)) byPostType.set(type, []);
+      byPostType.get(type)!.push(eng);
+    }
+  }
+  const postTypeEngagement = [...byPostType.entries()]
+    .map(([type, engs]) => ({
+      type,
+      avgEngagement: round(engs.reduce((s, v) => s + v, 0) / engs.length, 0),
+      postCount: engs.length,
+    }))
+    .sort((a, b) => b.avgEngagement - a.avgEngagement);
+
+  const themeKeywords: Record<string, RegExp> = {
+    'Promotions': /\b(?:promo|discount|offer|deal|sale|free|save)\b/i,
+    'Dining': /\b(?:restaurant|dining|food|chef|menu|buffet|breakfast)\b/i,
+    'Rooms & Suites': /\b(?:room|suite|villa|accommodation)\b/i,
+    'Wellness & Spa': /\b(?:spa|wellness|massage|yoga|retreat)\b/i,
+    'Events': /\b(?:wedding|event|conference|ceremony)\b/i,
+    'Beach & Pool': /\b(?:beach|sea|ocean|sunset|pool)\b/i,
+  };
+
+  const allPostTexts = data.competitors.flatMap((c) =>
+    c.topPosts.map((p) => p.postText ?? ''),
+  );
+
+  const contentThemes = Object.entries(themeKeywords)
+    .map(([theme, regex]) => ({
+      theme,
+      postCount: allPostTexts.filter((t) => regex.test(t)).length,
+      pct: round((allPostTexts.filter((t) => regex.test(t)).length / (allPostTexts.length || 1)) * 100, 0),
+    }))
+    .filter((t) => t.postCount > 0)
+    .sort((a, b) => b.postCount - a.postCount);
+
+  const ctaTotals = new Map<string, number>();
+  for (const c of data.competitors) {
+    for (const ad of c.topAds) {
+      const cta = String(ad.ctaType ?? 'unknown');
+      ctaTotals.set(cta, (ctaTotals.get(cta) ?? 0) + 1);
+    }
+  }
+  const ctaBreakdown = [...ctaTotals.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 6)
+    .map(([cta, count]) => ({
+      cta: cta.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase()),
+      count,
+      pct: round((count / ([...ctaTotals.values()].reduce((s, v) => s + v, 0) || 1)) * 100, 0),
+    }));
+
+  const topEngagers = data.competitors
+    .filter((c) => c.pageMetrics?.avgEngagementRate != null)
+    .sort((a, b) => (b.pageMetrics!.avgEngagementRate!) - (a.pageMetrics!.avgEngagementRate!))
+    .slice(0, 5)
+    .map((c) => ({
+      name: c.competitor.name,
+      engagementRate: round(c.pageMetrics!.avgEngagementRate!, 2),
+      postsLast30d: c.pageMetrics?.postsLast30d ?? 0,
+      strategy: c.latestAnalysis?.marketingStrategyEn ?? '—',
+      isCustomer: c.competitor.isCustomer,
+    }));
+
+  return {
+    formatEffectiveness,
+    postTypeEngagement,
+    contentThemes,
+    ctaBreakdown,
+    topEngagers,
+    totalPostsAnalyzed: allPostTexts.length,
+    hasData: allPostTexts.length > 0 || formatTotals.size > 0,
+  };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// NEW: Strategy Analysis data builder
+// ─────────────────────────────────────────────────────────────────────────────
+
+function buildStrategyAnalysis(data: ReportData) {
+  const llmIntel = (data as any).llmMarketIntel;
+
+  const strategyFreq = new Map<string, number>();
+  const strategyUsers = new Map<string, string[]>();
+  for (const c of data.competitors) {
+    const s = c.latestAnalysis?.marketingStrategyEn;
+    if (s) {
+      strategyFreq.set(s, (strategyFreq.get(s) ?? 0) + 1);
+      if (!strategyUsers.has(s)) strategyUsers.set(s, []);
+      strategyUsers.get(s)!.push(c.competitor.name);
+    }
+  }
+
+  const dominantStrategies = [...strategyFreq.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 6)
+    .map(([strategy, count]) => ({
+      strategy,
+      count,
+      pct: round((count / (data.competitors.length || 1)) * 100, 0),
+      users: (strategyUsers.get(strategy) ?? []).slice(0, 3),
+    }));
+
+  const leader = data.healthScoreRankings[0];
+  const leaderSummary = leader
+    ? data.competitors.find((c) => c.competitor.name === leader.competitorName)
+    : null;
+  const leaderProfile = leader && leaderSummary ? {
+    name: leader.competitorName,
+    totalScore: leader.totalScore,
+    paidScore: leader.paidScore,
+    organicScore: leader.organicScore,
+    strategy: leaderSummary.latestAnalysis?.marketingStrategyEn ?? '—',
+    usp: leaderSummary.latestAnalysis?.keyUspEn ?? '—',
+    activeAds: leaderSummary.latestAnalysis?.totalActiveAds ?? 0,
+    followers: leaderSummary.pageMetrics?.followers ?? 0,
+    targetSegments: leaderSummary.latestAnalysis?.targetSegments?.map((s) => s.segment) ?? [],
+  } : null;
+
+  const avgScore = data.marketOverview.avgHealthScore;
+  const topChallengers = data.healthScoreRankings
+    .filter((r) => r.trend === 'rising' && r.totalScore > avgScore && r.rank !== 1)
+    .slice(0, 3)
+    .map((r) => {
+      const sum = data.competitors.find((c) => c.competitor.name === r.competitorName);
+      return {
+        name: r.competitorName,
+        score: r.totalScore,
+        strategy: sum?.latestAnalysis?.marketingStrategyEn ?? '—',
+      };
+    });
+
+  const keyInsights: string[] = (llmIntel?.recommended_actions ?? []).slice(0, 3);
+  if (keyInsights.length === 0) {
+    keyInsights.push(
+      `Market average health score: ${round(avgScore, 0)}/100`,
+      dominantStrategies[0]
+        ? `"${dominantStrategies[0].strategy}" used by ${dominantStrategies[0].count} competitors (${dominantStrategies[0].pct}%)`
+        : 'No dominant strategy identified',
+      `${data.competitors.filter(c => (c.latestAnalysis?.totalActiveAds ?? 0) > 0).length} of ${data.marketOverview.totalCompetitors} competitors actively advertising`,
+    );
+  }
+
+  const uspFreq = new Map<string, number>();
+  for (const c of data.competitors) {
+    const u = c.latestAnalysis?.keyUspEn;
+    if (u) uspFreq.set(u, (uspFreq.get(u) ?? 0) + 1);
+  }
+  const topUSPs = [...uspFreq.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .map(([usp, count]) => ({ usp, count }));
+
+  return {
+    dominantStrategies,
+    leaderProfile,
+    topChallengers,
+    keyInsights,
+    topUSPs,
+    hasLlmData: !!llmIntel,
+    llmMarketOverview: llmIntel?.market_overview ?? null,
+    llmRiskFactors: (llmIntel?.risk_factors ?? []).slice(0, 3),
+  };
+}
+
 export class PDFReportGenerator {
   private templates: CompiledTemplates | null = null;
   private chartGen: ChartGenerator;
@@ -572,23 +1126,31 @@ export class PDFReportGenerator {
       segments: buildSegmentEntries(data),
       engagement: buildEngagementEntries(data),
       postFrequency: buildPostFrequencyEntries(data),
+      pricingRange: (() => {
+        const pd = buildPricingBattlefield(data);
+        return pd.hasPricingData ? pd.entries : undefined;
+      })(),
+      marketAdHistory: (data as any).marketAdHistory ?? undefined,
     });
 
     // 2. Build template context
-    const leaderboard = buildLeaderboard(data);
+    const leaderboardResult = buildLeaderboard(data, (data as any).historicalScores);
+    const leaderboard = leaderboardResult.entries;
     const customerComparison = buildCustomerComparison(data);
     const competitorProfiles = buildCompetitorProfiles(data);
     const recGroups = buildRecommendationGroups(data.recommendations);
     const alertSummary = buildAlertSummary(data);
 
-    const criticalAlerts = data.criticalAlerts.filter((a) => a.severity === 'critical');
-    const highAlerts = data.criticalAlerts.filter((a) => a.severity === 'warning');
-    const mediumAlerts = data.criticalAlerts.filter((a) => a.severity === 'info');
+    const criticalAlerts = data.criticalAlerts.filter((a) => a.severity === 'critical').map(mapAlertForTemplate);
+    const highAlerts = data.criticalAlerts.filter((a) => a.severity === 'warning').map(mapAlertForTemplate);
+    const mediumAlerts = data.criticalAlerts.filter((a) => a.severity === 'info').map(mapAlertForTemplate);
 
     const ctx = {
       ...data,
       charts,
       leaderboard,
+      biggestRisers: leaderboardResult.biggestRisers,
+      biggestFallers: leaderboardResult.biggestFallers,
       customerComparison,
       customerRank: customerComparison?.customerRank,
       customerAboveAverage: customerComparison?.customerAboveAverage,
@@ -645,24 +1207,40 @@ export class PDFReportGenerator {
         saturationPct: Math.min(100, Math.round((s.count / (data.marketOverview.totalCompetitors || 1)) * 100)),
       })),
 
-      // Executive brief fields
-      executiveBrief: buildExecutiveBrief(data),
+      // New McKinsey sections
+      marketMomentum: buildMarketMomentum(data),
+      threatMatrix: buildThreatMatrix(data),
+      pricingBattlefield: buildPricingBattlefield(data),
+      promoCalendar: buildPromoCalendar(data),
+      stealThisPlaybook: buildStealThisPlaybook(data),
+      creativeIntelligence: buildCreativeIntelligence(data),
+      strategyAnalysis: buildStrategyAnalysis(data),
 
       // Social Media & Ad Intelligence (Apify data)
       socialMediaIntel: buildSocialMediaIntelContext(data),
+
+      // Executive brief — spread to top level so template fields are accessible directly
+      ...buildExecutiveBrief(data),
     };
 
-    // 3. Render section partials
+    // 3. Render section partials in McKinsey-style order
     const sections = [
-      t.cover(ctx),
-      t.executiveBrief(ctx),
-      t.healthLeaderboard(ctx),
-      customerComparison ? t.customerComparison(ctx) : '',
-      t.shareOfVoice(ctx),
-      t.socialMediaIntel(ctx),
-      t.competitorProfile(ctx),
-      t.alerts(ctx),
-      t.recommendations(ctx),
+      t.cover(ctx),                                          // 1. Cover
+      t.executiveBrief(ctx),                                // 2. Executive Brief
+      t.marketMomentum(ctx),                                // 3. Market Momentum
+      t.healthLeaderboard(ctx),                             // 4. Health Score Leaderboard
+      t.threatMatrix(ctx),                                  // 5. Threat Assessment Matrix
+      t.shareOfVoice(ctx),                                  // 6. Share of Voice
+      t.pricingBattlefield(ctx),                           // 7. Pricing Battlefield
+      t.promotionCalendar(ctx),                             // 8. Promotion Calendar
+      t.stealThisPlaybook(ctx),                             // 9. Steal This Playbook
+      t.recommendations(ctx),                               // 10. Recommended Actions
+      t.creativeIntelligence(ctx),                          // 11. Creative Intelligence
+      t.strategyAnalysis(ctx),                              // 12. Strategy Analysis
+      customerComparison ? t.customerComparison(ctx) : '', // 13. Your Position
+      t.socialMediaIntel(ctx),                              // 14. Social Media Intel
+      t.competitorProfile(ctx),                             // 15. Competitor Deep-Dives
+      t.alerts(ctx),                                        // 16. Alerts Dashboard
     ].join('\n');
 
     // 4. Wrap in base layout
@@ -766,50 +1344,53 @@ function buildExecutiveBrief(data: ReportData) {
     (r) => r.competitorName === customer?.competitor.name,
   );
 
-  // Top 3 things to know
-  const insights: Array<{ titleEn: string; titleTh: string; detail: string }> = [];
+  // Top 3 things to know — template expects topInsights with descriptionEn/descriptionTh
+  const topInsights: Array<{ titleEn: string; descriptionEn: string; descriptionTh: string }> = [];
 
-  // Highest riser
   const topRiser = data.healthScoreRankings[0];
   if (topRiser) {
-    insights.push({
-      titleEn: `${topRiser.competitorName} leads with score ${round(topRiser.totalScore, 0)}`,
-      titleTh: `${topRiser.competitorName} นำด้วยคะแนน ${round(topRiser.totalScore, 0)}`,
-      detail: `Trend: ${topRiser.trend}`,
+    topInsights.push({
+      titleEn: `${topRiser.competitorName} leads market with score ${round(topRiser.totalScore, 0)}`,
+      descriptionEn: `Trend: ${topRiser.trend}. Paid: ${round(topRiser.paidScore, 0)}, Organic: ${round(topRiser.organicScore, 0)}.`,
+      descriptionTh: `${topRiser.competitorName} นำตลาดด้วยคะแนน ${round(topRiser.totalScore, 0)} แนวโน้ม: ${topRiser.trend}`,
     });
   }
 
-  // Alert count
   const critCount = data.criticalAlerts.filter((a) => a.severity === 'critical').length;
   if (critCount > 0) {
-    insights.push({
+    topInsights.push({
       titleEn: `${critCount} critical alert(s) require immediate attention`,
-      titleTh: `${critCount} การแจ้งเตือนวิกฤตต้องการความสนใจทันที`,
-      detail: data.criticalAlerts[0]?.title ?? '',
+      descriptionEn: data.criticalAlerts[0]?.title ?? 'Review alerts dashboard for details.',
+      descriptionTh: `${critCount} การแจ้งเตือนวิกฤตต้องการความสนใจทันที`,
     });
   }
 
-  // Total ads in market
-  insights.push({
-    titleEn: `${data.marketOverview.totalActiveAds} active ads across ${data.marketOverview.activeCompetitors} competitors`,
-    titleTh: `${data.marketOverview.totalActiveAds} โฆษณาจาก ${data.marketOverview.activeCompetitors} คู่แข่ง`,
-    detail: `Average health score: ${round(data.marketOverview.avgHealthScore, 0)}`,
+  topInsights.push({
+    titleEn: `${data.marketOverview.totalActiveAds} active ads across ${data.marketOverview.activeCompetitors} advertisers`,
+    descriptionEn: `Market average health score: ${round(data.marketOverview.avgHealthScore, 0)}/100.`,
+    descriptionTh: `${data.marketOverview.totalActiveAds} โฆษณาจาก ${data.marketOverview.activeCompetitors} คู่แข่ง คะแนนเฉลี่ย ${round(data.marketOverview.avgHealthScore, 0)}/100`,
   });
 
-  // Top 3 recommended actions
   const topActions = data.recommendations.slice(0, 3).map((r) => ({
     title: r.title,
     description: truncate(r.description, 100),
     priority: r.priority,
   }));
 
-  // Biggest opportunity & threat
   const sortedByScore = [...data.healthScoreRankings].sort((a, b) => a.totalScore - b.totalScore);
   const weakest = sortedByScore[0];
   const strongest = sortedByScore[sortedByScore.length - 1];
 
+  const segCounts = new Map<string, number>();
+  for (const c of data.competitors) {
+    for (const seg of c.latestAnalysis?.targetSegments ?? []) {
+      segCounts.set(seg.segment, (segCounts.get(seg.segment) ?? 0) + 1);
+    }
+  }
+  const underServed = [...segCounts.entries()].sort((a, b) => a[1] - b[1])[0];
+
   return {
-    marketStatus: `${data.marketOverview.activeCompetitors} active competitors, ${data.marketOverview.totalActiveAds} ads`,
+    marketStatus: `${data.marketOverview.activeCompetitors} active advertisers / ${data.marketOverview.totalActiveAds} ads`,
     customerPosition: customer
       ? `Rank #${customerRanking?.rank ?? '—'} | Score: ${round(customerRanking?.totalScore ?? 0, 0)}`
       : 'No customer tagged',
@@ -817,13 +1398,25 @@ function buildExecutiveBrief(data: ReportData) {
     avgHealthScore: data.marketOverview.avgHealthScore,
     totalActiveAds: data.marketOverview.totalActiveAds,
     activeCompetitors: data.marketOverview.activeCompetitors,
-    insights: insights.slice(0, 3),
+    topInsights: topInsights.slice(0, 3),
     topActions,
     biggestOpportunity: weakest
-      ? { name: weakest.competitorName, score: weakest.totalScore, reason: 'Lowest health score — potential market gap' }
+      ? {
+        titleEn: underServed
+          ? `"${underServed[0]}" segment targeted by only ${underServed[1]} competitors`
+          : `${weakest.competitorName} has weak score (${round(weakest.totalScore, 0)}) — potential market gap`,
+        titleTh: underServed
+          ? `กลุ่ม "${underServed[0]}" มีคู่แข่งเพียง ${underServed[1]} ราย — โอกาสตลาดสูง`
+          : `${weakest.competitorName} มีคะแนนต่ำ — ช่องว่างตลาด`,
+        detail: 'Increase presence in under-served segments to capture more bookings.',
+      }
       : null,
     biggestThreat: strongest
-      ? { name: strongest.competitorName, score: strongest.totalScore, reason: 'Highest health score — dominant player' }
+      ? {
+        titleEn: `${strongest.competitorName} dominates with score ${round(strongest.totalScore, 0)} — aggressive advertiser`,
+        titleTh: `${strongest.competitorName} ครองตลาดด้วยคะแนน ${round(strongest.totalScore, 0)}`,
+        detail: 'Monitor their campaigns, creative strategy, and new launch cadence closely.',
+      }
       : null,
   };
 }

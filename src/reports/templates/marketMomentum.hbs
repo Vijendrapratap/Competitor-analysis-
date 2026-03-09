@@ -1,0 +1,86 @@
+<div class="page-break">
+  <h2>Market Momentum / โมเมนตัมตลาด</h2>
+
+  {{!-- KPI Cards --}}
+  <div class="grid-3 mt-2">
+    <div class="card card-navy text-center no-break">
+      <small style="color:var(--gray-300);">Total Active Ads Today / โฆษณาที่ใช้งานอยู่</small>
+      <p style="font-size:1.8rem;margin:.3rem 0;">{{marketMomentum.totalAdsToday}}</p>
+      {{#if marketMomentum.hasHistory}}
+        {{#if marketMomentum.adsChangePositive}}
+          <small style="color:var(--green);">▲ +{{marketMomentum.adsChangePct}}% vs last week</small>
+        {{else}}
+          <small style="color:var(--red);">▼ {{marketMomentum.adsChangePct}}% vs last week</small>
+        {{/if}}
+      {{/if}}
+    </div>
+    <div class="card text-center no-break">
+      <small>Active Advertisers / ผู้โฆษณาที่ใช้งาน</small>
+      <p style="font-size:1.8rem;margin:.3rem 0;color:var(--navy);">{{marketMomentum.activeAdvertisers}}</p>
+      <small>of {{marketMomentum.totalCompetitors}} tracked</small>
+    </div>
+    <div class="card text-center no-break">
+      <small>New Entrants / ผู้เข้ามาใหม่</small>
+      <p style="font-size:1.8rem;margin:.3rem 0;color:{{#if marketMomentum.newEntrantsCount}}var(--red){{else}}var(--green){{/if}};">{{marketMomentum.newEntrantsCount}}</p>
+      <small>this period</small>
+    </div>
+  </div>
+
+  {{!-- Market Ad Volume Trend --}}
+  {{#if marketMomentum.hasHistory}}
+  <div class="section mt-2">
+    <h3>Market Ad Volume Trend / แนวโน้มปริมาณโฆษณาตลาด</h3>
+    <div class="chart-container">
+      {{{charts.marketAdTrend}}}
+    </div>
+  </div>
+  {{/if}}
+
+  {{!-- Top Share of Voice --}}
+  <div class="grid-2 mt-2">
+    <div class="section">
+      <h3>Share of Voice Leaders / ผู้นำส่วนแบ่งเสียง</h3>
+      {{#each marketMomentum.topSOV}}
+      <div class="card no-break" style="padding:.5rem .8rem;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span>
+            <strong>{{name}}</strong>
+            {{#if isCustomer}}<span class="badge badge-info">YOU</span>{{/if}}
+          </span>
+          <strong style="color:var(--navy);">{{sov}}%</strong>
+        </div>
+        <div class="progress-bar mt-1">
+          <div class="progress-fill" style="width:{{sov}}%;background:var(--navy);"></div>
+        </div>
+      </div>
+      {{/each}}
+    </div>
+
+    <div class="section">
+      <h3>Rising Competitors / คู่แข่งที่กำลังเติบโต</h3>
+      {{#if marketMomentum.risingCompetitors.length}}
+        {{#each marketMomentum.risingCompetitors}}
+        <div class="card no-break" style="padding:.5rem .8rem;border-left:3px solid var(--green);">
+          <div style="display:flex;justify-content:space-between;">
+            <strong>{{name}}</strong>
+            <span class="trend-rising">▲ Rising</span>
+          </div>
+          <div style="font-size:.85rem;color:var(--gray-500);">Score: {{round score 0}}/100</div>
+        </div>
+        {{/each}}
+      {{else}}
+        <div class="card"><small style="color:var(--gray-500);">No strongly rising competitors detected.</small></div>
+      {{/if}}
+
+      {{#if marketMomentum.newEntrants.length}}
+      <h4 style="margin-top:1rem;color:var(--red);">New Market Entrants / ผู้เข้ามาใหม่</h4>
+        {{#each marketMomentum.newEntrants}}
+        <div class="card no-break" style="padding:.5rem .8rem;border-left:3px solid var(--red);">
+          <strong>{{name}}</strong>
+          <small style="float:right;color:var(--gray-500);">{{category}}</small>
+        </div>
+        {{/each}}
+      {{/if}}
+    </div>
+  </div>
+</div>
