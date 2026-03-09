@@ -4,6 +4,7 @@
 
 import {
   and,
+  asc,
   avg,
   count,
   desc,
@@ -170,6 +171,13 @@ function mapCompetitorRow(row: typeof competitors.$inferSelect): Competitor {
     isActive: row.isActive,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
+    // ── NEW FIELDS (002_schema_enhancements) ────────────────────────────
+    cachedHealthScore: row.cachedHealthScore ? parseFloat(row.cachedHealthScore as string) : null,
+    cachedShareOfVoice: row.cachedShareOfVoice ? parseFloat(row.cachedShareOfVoice as string) : null,
+    cachedThreatLevel: row.cachedThreatLevel as any,
+    positioningSimilarity: row.positioningSimilarity as any,
+    estimatedDailySpend: row.estimatedDailySpend,
+    spendTier: row.spendTier as any,
   };
 }
 
@@ -327,6 +335,27 @@ function mapAdRow(row: typeof ads.$inferSelect): Ad {
     language: row.language,
     screenshotPath: row.screenshotPath,
     scrapedAt: row.scrapedAt,
+    // ── NEW FIELDS (002_schema_enhancements) ────────────────────────────
+    adArchiveId: row.adArchiveId,
+    adText: row.adText,
+    adCreativeBodies: (row.adCreativeBodies ?? []) as string[],
+    publisherPlatforms: (row.publisherPlatforms ?? []) as string[],
+    adStatus: row.adStatus,
+    startDate: row.startDate,
+    endDate: row.endDate,
+    adCreationTime: row.adCreationTime,
+    estimatedAudienceSize: row.estimatedAudienceSize,
+    ctaDomain: row.ctaDomain,
+    ctaHeadline: row.ctaHeadline,
+    ctaDescription: row.ctaDescription,
+    adSnapshotUrl: row.adSnapshotUrl,
+    adLibraryUrl: row.adLibraryUrl,
+    creativeTypeEnum: row.creativeTypeEnum as any,
+    categoryTag: row.categoryTag as any,
+    extractedPriceStr: row.extractedPriceStr,
+    discountDepth: row.discountDepth,
+    isHighFocus: row.isHighFocus,
+    roiConfidence: row.roiConfidence as any,
   };
 }
 
@@ -439,6 +468,17 @@ function mapPostRow(row: typeof facebookPosts.$inferSelect): FacebookPost {
     language: row.language,
     isTopPerformer: row.isTopPerformer,
     scrapedAt: row.scrapedAt,
+    // ── NEW FIELDS (002_schema_enhancements) ────────────────────────────
+    likes: row.likes,
+    viewsCount: row.viewsCount,
+    reactionLikeCount: row.reactionLikeCount,
+    reactionLoveCount: row.reactionLoveCount,
+    reactionWowCount: row.reactionWowCount,
+    reactionHahaCount: row.reactionHahaCount,
+    reactionCareCount: row.reactionCareCount,
+    mediaType: row.mediaType as any,
+    thumbnailUrl: row.thumbnailUrl,
+    engagementScore: row.engagementScore ? parseFloat(row.engagementScore as string) : null,
   };
 }
 
@@ -887,4 +927,19 @@ export async function getShareOfVoice(): Promise<ShareOfVoiceEntry[]> {
         ? Math.round((r.totalActiveAds / grandTotal) * 10000) / 100
         : 0,
   }));
+}
+
+export async function getMarketAdHistory(days = 30): Promise<{ date: string; totalAds: number }[]> {
+  const since = new Date();
+  since.setDate(since.getDate() - days);
+  const rows = await db
+    .select({
+      date: analyses.analysisDate,
+      total: sql<number>`sum(${analyses.totalActiveAds})`,
+    })
+    .from(analyses)
+    .where(gte(analyses.analysisDate, since))
+    .groupBy(analyses.analysisDate)
+    .orderBy(asc(analyses.analysisDate));
+  return rows.map((r) => ({ date: String(r.date), totalAds: Number(r.total) }));
 }

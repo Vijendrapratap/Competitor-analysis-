@@ -774,6 +774,17 @@ export class FacebookPostsScraper {
       language,
       isTopPerformer: false, // Will be set by scoreAndFlagTopPerformers()
       scrapedAt: now,
+      // ── NEW FIELDS (002_schema_enhancements) ────────────────────────────
+      likes: null,
+      viewsCount: null,
+      reactionLikeCount: null,
+      reactionLoveCount: null,
+      reactionWowCount: null,
+      reactionHahaCount: null,
+      reactionCareCount: null,
+      mediaType: null,
+      thumbnailUrl: null,
+      engagementScore: null,
     };
   }
 
