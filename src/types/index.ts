@@ -121,6 +121,77 @@ export enum TrendSource {
   Manual = 'manual',
 }
 
+// ── NEW ENUMS (002_schema_enhancements) ──────────────────────────────────────
+
+export enum SpendTier {
+  Heavy = 'heavy',
+  Moderate = 'moderate',
+  Light = 'light',
+  Dark = 'dark',
+}
+
+export enum PositioningSimilarity {
+  High = 'high',
+  Medium = 'medium',
+  Low = 'low',
+}
+
+export enum AdCategoryTag {
+  RoomPromo = 'room_promo',
+  Wedding = 'wedding',
+  Family = 'family',
+  Fnb = 'fnb',
+  BrandAwareness = 'brand_awareness',
+  Wellness = 'wellness',
+  Pets = 'pets',
+  Seasonal = 'seasonal',
+  Mice = 'mice',
+  Romance = 'romance',
+  EarlyBird = 'early_bird',
+  Other = 'other',
+}
+
+export enum CreativeTypeEnum {
+  Image = 'image',
+  Video = 'video',
+  Carousel = 'carousel',
+  Collection = 'collection',
+}
+
+export enum RoiConfidence {
+  High = 'high',
+  Medium = 'medium',
+  Low = 'low',
+}
+
+export enum MediaType {
+  Photo = 'photo',
+  Video = 'video',
+  Reel = 'reel',
+  Carousel = 'carousel',
+  Link = 'link',
+  Text = 'text',
+}
+
+export enum CompetitorSegmentName {
+  Family = 'family',
+  Couples = 'couples',
+  Weddings = 'weddings',
+  Mice = 'mice',
+  Wellness = 'wellness',
+  Pets = 'pets',
+  ThaiResidents = 'thai_residents',
+  International = 'international',
+  Solo = 'solo',
+}
+
+export enum ReportAlertSeverity {
+  Critical = 'critical',
+  High = 'high',
+  Medium = 'medium',
+  Info = 'info',
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Core Domain Interfaces
 // ─────────────────────────────────────────────────────────────────────────────
@@ -140,6 +211,19 @@ export interface Competitor {
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
+  // ── NEW FIELDS (002_schema_enhancements) ────────────────────────────────
+  /** Cached health score from latest analysis */
+  cachedHealthScore: number | null;
+  /** Cached share of voice from latest analysis */
+  cachedShareOfVoice: number | null;
+  /** Cached threat level from latest analysis */
+  cachedThreatLevel: ThreatLevel | null;
+  /** Positioning similarity to client: 'high' | 'medium' | 'low' */
+  positioningSimilarity: PositioningSimilarity | null;
+  /** Estimated daily ad spend, e.g. "$50-100/day" */
+  estimatedDailySpend: string | null;
+  /** Ad spend tier classification */
+  spendTier: SpendTier | null;
 }
 
 export interface Ad {
@@ -163,6 +247,47 @@ export interface Ad {
   language: string | null;
   screenshotPath: string | null;
   scrapedAt: Date;
+  // ── NEW FIELDS (002_schema_enhancements) ────────────────────────────────
+  /** Archive ID from Meta (mirrors metaAdId) */
+  adArchiveId: string | null;
+  /** Ad body text (supplement to adCopy) */
+  adText: string | null;
+  /** Array of creative body text variations */
+  adCreativeBodies: string[] | null;
+  /** Array of publisher platforms (e.g. ['facebook', 'instagram']) */
+  publisherPlatforms: string[] | null;
+  /** Ad status: 'active', 'inactive', etc */
+  adStatus: string | null;
+  /** Ad start date (more explicit than startedRunning) */
+  startDate: Date | null;
+  /** Ad end date */
+  endDate: Date | null;
+  /** When the ad was created/authored */
+  adCreationTime: Date | null;
+  /** Estimated audience reach */
+  estimatedAudienceSize: string | null;
+  /** CTA domain / landing host */
+  ctaDomain: string | null;
+  /** CTA headline text */
+  ctaHeadline: string | null;
+  /** CTA description text */
+  ctaDescription: string | null;
+  /** URL to ad snapshot/preview image */
+  adSnapshotUrl: string | null;
+  /** URL to ad in Meta Ads Library */
+  adLibraryUrl: string | null;
+  /** Creative type enum: 'image' | 'video' | 'carousel' | 'collection' */
+  creativeTypeEnum: CreativeTypeEnum | null;
+  /** Ad category tag for segmentation */
+  categoryTag: AdCategoryTag | null;
+  /** Extracted price as display string (e.g. "THB 4,750") */
+  extractedPriceStr: string | null;
+  /** Discount depth extracted from ad (e.g. "25% off") */
+  discountDepth: string | null;
+  /** True if this ad has >= 3 variations (high marketing focus) */
+  isHighFocus: boolean | null;
+  /** Expected ROI confidence based on metrics */
+  roiConfidence: RoiConfidence | null;
 }
 
 export interface FacebookPageMetrics {
@@ -197,6 +322,27 @@ export interface FacebookPost {
   language: string | null;
   isTopPerformer: boolean;
   scrapedAt: Date;
+  // ── NEW FIELDS (002_schema_enhancements) ────────────────────────────────
+  /** Specific like count (vs reactions = total) */
+  likes: number | null;
+  /** Total post impressions/views */
+  viewsCount: number | null;
+  /** Count of like reactions specifically */
+  reactionLikeCount: number | null;
+  /** Count of love reactions */
+  reactionLoveCount: number | null;
+  /** Count of wow reactions */
+  reactionWowCount: number | null;
+  /** Count of haha/laugh reactions */
+  reactionHahaCount: number | null;
+  /** Count of care reactions */
+  reactionCareCount: number | null;
+  /** Media type classification */
+  mediaType: MediaType | null;
+  /** URL to post thumbnail/preview image */
+  thumbnailUrl: string | null;
+  /** Engagement score: (likes + comments*2 + shares*3) / followers * 100 */
+  engagementScore: number | null;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -630,3 +776,49 @@ export interface ListReportsFilters {
   limit?: number;
   offset?: number;
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// NEW TABLES (002_schema_enhancements)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Daily market-wide snapshot for trend analysis */
+export interface MarketSnapshot {
+  id: number;
+  snapshotDate: Date;
+  totalActiveAds: number;
+  activeAdvertisers: number;
+  marketLeaderId: number | null;
+  totalCompetitors: number;
+  clientAdCount: number;
+  /** Client share of voice as percentage 0–100 */
+  clientSov: number | null;
+  createdAt: Date;
+}
+
+export type NewMarketSnapshot = Omit<MarketSnapshot, 'id' | 'createdAt'>;
+
+/** Competitor targeting segment classification */
+export interface CompetitorSegment {
+  id: number;
+  competitorId: number;
+  segmentName: CompetitorSegmentName;
+  isActive: boolean;
+  createdAt: Date;
+}
+
+export type NewCompetitorSegment = Omit<CompetitorSegment, 'id' | 'createdAt'>;
+
+/** Report-level alert for dashboard */
+export interface ReportAlert {
+  id: number;
+  alertDate: Date;
+  severity: ReportAlertSeverity;
+  competitorId: number | null;
+  alertType: string;
+  message: string;
+  messageThai: string | null;
+  isActionable: boolean;
+  createdAt: Date;
+}
+
+export type NewReportAlert = Omit<ReportAlert, 'id' | 'createdAt'>;
