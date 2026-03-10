@@ -1,0 +1,106 @@
+<div class="page-break">
+  <h2>Pricing Battlefield / สนามรบด้านราคา</h2>
+
+  {{#if pricingBattlefield.hasPricingData}}
+
+  {{!-- Market Price Summary --}}
+  <div class="card card-navy mt-2 no-break">
+    <div class="grid-3 text-center">
+      <div>
+        <small style="color:var(--gray-300);">Market Min / ราคาต่ำสุด</small>
+        <p style="font-size:1.4rem;margin:.2rem 0;color:var(--green);">{{formatCurrency pricingBattlefield.marketMinPrice pricingBattlefield.currency}}</p>
+      </div>
+      <div>
+        <small style="color:var(--gray-300);">Market Average / ราคาเฉลี่ย</small>
+        <p style="font-size:1.4rem;margin:.2rem 0;">{{formatCurrency pricingBattlefield.marketAvgPrice pricingBattlefield.currency}}</p>
+      </div>
+      <div>
+        <small style="color:var(--gray-300);">Market Max / ราคาสูงสุด</small>
+        <p style="font-size:1.4rem;margin:.2rem 0;color:var(--red);">{{formatCurrency pricingBattlefield.marketMaxPrice pricingBattlefield.currency}}</p>
+      </div>
+    </div>
+  </div>
+
+  {{!-- Segment breakdown --}}
+  <div class="grid-3 mt-1">
+    <div class="card text-center no-break">
+      <small>Premium (&gt;15% above avg)</small>
+      <p style="font-size:1.4rem;margin:.2rem 0;color:var(--red);">{{pricingBattlefield.premiumCount}}</p>
+    </div>
+    <div class="card text-center no-break">
+      <small>Mid-Range (±15% avg)</small>
+      <p style="font-size:1.4rem;margin:.2rem 0;color:var(--navy);">{{pricingBattlefield.midRangeCount}}</p>
+    </div>
+    <div class="card text-center no-break">
+      <small>Budget (&gt;15% below avg)</small>
+      <p style="font-size:1.4rem;margin:.2rem 0;color:var(--green);">{{pricingBattlefield.budgetCount}}</p>
+    </div>
+  </div>
+
+  {{!-- Pricing range chart --}}
+  <div class="section mt-2">
+    <h3>Price Range Comparison / เปรียบเทียบช่วงราคา</h3>
+    <div class="chart-container">
+      {{{charts.pricingRange}}}
+    </div>
+  </div>
+
+  {{!-- Detailed pricing table --}}
+  <div class="section mt-1">
+    <h3>Competitor Pricing Detail / รายละเอียดราคาคู่แข่ง</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Competitor</th>
+          <th>Segment</th>
+          <th>Min</th>
+          <th>Average</th>
+          <th>Max</th>
+          <th>vs Market</th>
+          <th>Promotions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each pricingBattlefield.entries}}
+        <tr class="{{#if isCustomer}}highlight{{/if}} no-break">
+          <td>
+            <strong>{{name}}</strong>
+            {{#if isCustomer}}<span class="badge badge-info">YOU</span>{{/if}}
+            <br/><small class="thai">{{category}}</small>
+          </td>
+          <td>
+            <span class="badge {{#if (eq positionLabel 'Premium')}}badge-critical{{else if (eq positionLabel 'Budget')}}badge-info{{else}}badge-warning{{/if}}">
+              {{positionLabel}}
+            </span>
+          </td>
+          <td style="color:var(--green);">{{formatCurrency minPrice currency}}</td>
+          <td><strong>{{formatCurrency avgPrice currency}}</strong></td>
+          <td style="color:var(--red);">{{formatCurrency maxPrice currency}}</td>
+          <td>
+            {{#if (gt pctAboveMarket 0)}}
+              <span style="color:var(--red);">+{{pctAboveMarket}}%</span>
+            {{else}}
+              <span style="color:var(--green);">{{pctAboveMarket}}%</span>
+            {{/if}}
+          </td>
+          <td>
+            {{#if hasPromotion}}
+              <span class="badge badge-warning">🏷️ Active</span>
+              {{#if promotionDetail}}<br/><small>{{truncate promotionDetail 40}}</small>{{/if}}
+            {{else}}
+              <span style="color:var(--gray-400);">—</span>
+            {{/if}}
+          </td>
+        </tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+
+  {{else}}
+  <div class="card mt-2 text-center" style="padding:2rem;">
+    <p style="color:var(--gray-500);">No pricing data available for this period.</p>
+    <small class="thai">ไม่มีข้อมูลราคาสำหรับช่วงเวลานี้</small>
+  </div>
+  {{/if}}
+</div>

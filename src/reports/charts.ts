@@ -106,6 +106,19 @@ export interface PostFrequencyEntry {
   isCustomer?: boolean;
 }
 
+export interface PricingRangeEntry {
+  name: string;
+  minPrice: number;
+  avgPrice: number;
+  maxPrice: number;
+  isCustomer?: boolean;
+}
+
+export interface MarketAdHistoryEntry {
+  date: string;
+  totalAds: number;
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // ChartGenerator
 // ─────────────────────────────────────────────────────────────────────────────
@@ -400,6 +413,95 @@ export class ChartGenerator {
     });
   }
 
+  // ── 7. Pricing Range (horizontal bar) ─────────────────────────────────────
+
+  async pricingRange(entries: PricingRangeEntry[]): Promise<string> {
+    log.info('Generating pricing range chart', { entries: entries.length });
+
+    const sorted = [...entries].sort((a, b) => a.avgPrice - b.avgPrice).slice(0, 15);
+    const labels = sorted.map((e) => e.name);
+
+    return this.renderToDataUrl({
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: 'Min Price',
+            data: sorted.map((e) => e.minPrice),
+            backgroundColor: sorted.map((e) => e.isCustomer ? '#ecc94b88' : '#38a16988'),
+            borderWidth: 0,
+          },
+          {
+            label: 'Avg Price',
+            data: sorted.map((e) => e.avgPrice - e.minPrice),
+            backgroundColor: sorted.map((e) => e.isCustomer ? COLOURS.gold : COLOURS.navy),
+            borderWidth: 0,
+          },
+          {
+            label: 'Max Price',
+            data: sorted.map((e) => e.maxPrice - e.avgPrice),
+            backgroundColor: sorted.map((e) => e.isCustomer ? '#d69e2e44' : '#1a365d44'),
+            borderWidth: 0,
+          },
+        ],
+      },
+      options: {
+        responsive: false,
+        indexAxis: 'y',
+        scales: {
+          x: { stacked: true, title: { display: true, text: 'Price (THB)' }, beginAtZero: true },
+          y: { stacked: true, ticks: { font: { size: 9 } } },
+        },
+        plugins: {
+          title: { display: true, text: 'Competitor Price Ranges (Min / Avg / Max)', font: { size: 14 } },
+          legend: { position: 'top' },
+        },
+        chartTitle: 'Pricing Range',
+      } as Record<string, unknown>,
+    });
+  }
+
+  // ── 8. Market Ad Volume Trend (line) ───────────────────────────────────────
+
+  async marketAdTrend(entries: MarketAdHistoryEntry[]): Promise<string> {
+    log.info('Generating market ad trend chart', { points: entries.length });
+
+    const sorted = [...entries].sort((a, b) => a.date.localeCompare(b.date));
+    const labelEvery = Math.max(1, Math.floor(sorted.length / 10));
+    const labels = sorted.map((e, i) => (i % labelEvery === 0 ? e.date.slice(5) : ''));
+
+    return this.renderToDataUrl({
+      type: 'line',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: 'Total Active Ads',
+            data: sorted.map((e) => e.totalAds),
+            borderColor: COLOURS.navy,
+            backgroundColor: '#1a365d22',
+            fill: true,
+            tension: 0.3,
+            pointRadius: 2,
+            borderWidth: 2,
+          },
+        ],
+      },
+      options: {
+        responsive: false,
+        scales: {
+          y: { beginAtZero: true, title: { display: true, text: 'Total Active Ads' } },
+        },
+        plugins: {
+          title: { display: true, text: 'Market Ad Volume Trend (Last 30 Days)', font: { size: 14 } },
+          legend: { display: false },
+        },
+        chartTitle: 'Market Ad Trend',
+      } as Record<string, unknown>,
+    });
+  }
+
   // ── Generate all charts for a report ───────────────────────────────────────
 
   async generateAll(data: {
@@ -409,6 +511,8 @@ export class ChartGenerator {
     segments?: SegmentEntry[];
     engagement?: EngagementEntry[];
     postFrequency?: PostFrequencyEntry[];
+    pricingRange?: PricingRangeEntry[];
+    marketAdHistory?: MarketAdHistoryEntry[];
   }): Promise<Record<string, string>> {
     log.info('Generating all charts');
     const charts: Record<string, string> = {};
@@ -427,6 +531,10 @@ export class ChartGenerator {
       tasks.push(['engagementComparison', () => this.engagementComparison(data.engagement!)]);
     if (data.postFrequency?.length)
       tasks.push(['postingFrequency', () => this.postingFrequency(data.postFrequency!)]);
+    if (data.pricingRange?.length)
+      tasks.push(['pricingRange', () => this.pricingRange(data.pricingRange!)]);
+    if (data.marketAdHistory && data.marketAdHistory.length > 1)
+      tasks.push(['marketAdTrend', () => this.marketAdTrend(data.marketAdHistory!)]);
 
     // Generate sequentially to avoid node-canvas concurrency issues
     for (const [key, fn] of tasks) {

@@ -654,6 +654,27 @@ export class MetaAdsScraper {
       language,
       screenshotPath,
       scrapedAt: now,
+      // ── NEW FIELDS (002_schema_enhancements) ────────────────────────────
+      adArchiveId: null,
+      adText: null,
+      adCreativeBodies: null,
+      publisherPlatforms: null,
+      adStatus: null,
+      startDate: null,
+      endDate: null,
+      adCreationTime: null,
+      estimatedAudienceSize: null,
+      ctaDomain: null,
+      ctaHeadline: null,
+      ctaDescription: null,
+      adSnapshotUrl: null,
+      adLibraryUrl: null,
+      creativeTypeEnum: null,
+      categoryTag: null,
+      extractedPriceStr: null,
+      discountDepth: null,
+      isHighFocus: false,
+      roiConfidence: null,
     };
   }
 

@@ -36,11 +36,19 @@ export const competitors = pgTable(
     isActive: boolean('is_active').notNull().default(true),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+    // ── NEW COLUMNS (002_schema_enhancements) ────────────────────────────
+    cachedHealthScore: numeric('cached_health_score', { precision: 5, scale: 2 }),
+    cachedShareOfVoice: numeric('cached_share_of_voice', { precision: 5, scale: 2 }),
+    cachedThreatLevel: varchar('cached_threat_level', { length: 20 }),
+    positioningSimilarity: varchar('positioning_similarity', { length: 20 }),
+    estimatedDailySpend: varchar('estimated_daily_spend', { length: 100 }),
+    spendTier: varchar('spend_tier', { length: 20 }),
   },
   (table) => [
     uniqueIndex('competitors_facebook_page_id_idx').on(table.facebookPageId),
     index('competitors_is_active_idx').on(table.isActive),
     index('competitors_category_idx').on(table.category),
+    index('competitors_spend_tier_idx').on(table.spendTier),
   ],
 );
 
@@ -72,6 +80,27 @@ export const ads = pgTable(
     scrapedAt: timestamp('scraped_at', { withTimezone: true }).notNull().defaultNow(),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+    // ── NEW COLUMNS (002_schema_enhancements) ────────────────────────────
+    adArchiveId: varchar('ad_archive_id', { length: 100 }),
+    adText: text('ad_text'),
+    adCreativeBodies: jsonb('ad_creative_bodies').$type<string[]>(),
+    publisherPlatforms: jsonb('publisher_platforms').$type<string[]>(),
+    adStatus: varchar('ad_status', { length: 50 }),
+    startDate: timestamp('start_date', { withTimezone: true }),
+    endDate: timestamp('end_date', { withTimezone: true }),
+    adCreationTime: timestamp('ad_creation_time', { withTimezone: true }),
+    estimatedAudienceSize: varchar('estimated_audience_size', { length: 100 }),
+    ctaDomain: varchar('cta_domain', { length: 255 }),
+    ctaHeadline: varchar('cta_headline', { length: 500 }),
+    ctaDescription: text('cta_description'),
+    adSnapshotUrl: text('ad_snapshot_url'),
+    adLibraryUrl: text('ad_library_url'),
+    creativeTypeEnum: varchar('creative_type_enum', { length: 50 }),
+    categoryTag: varchar('category_tag', { length: 50 }),
+    extractedPriceStr: varchar('extracted_price_str', { length: 100 }),
+    discountDepth: varchar('discount_depth', { length: 50 }),
+    isHighFocus: boolean('is_high_focus').default(false),
+    roiConfidence: varchar('roi_confidence', { length: 20 }),
   },
   (table) => [
     uniqueIndex('ads_meta_ad_id_idx').on(table.metaAdId),
@@ -80,6 +109,8 @@ export const ads = pgTable(
     index('ads_scraped_at_idx').on(table.scrapedAt),
     index('ads_started_running_idx').on(table.startedRunning),
     index('ads_creative_type_idx').on(table.creativeType),
+    index('ads_category_tag_idx').on(table.categoryTag),
+    index('ads_is_high_focus_idx').on(table.isHighFocus),
   ],
 );
 
@@ -141,6 +172,17 @@ export const facebookPosts = pgTable(
     scrapedAt: timestamp('scraped_at', { withTimezone: true }).notNull().defaultNow(),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+    // ── NEW COLUMNS (002_schema_enhancements) ────────────────────────────
+    likes: integer('likes'),
+    viewsCount: integer('views_count'),
+    reactionLikeCount: integer('reaction_like_count'),
+    reactionLoveCount: integer('reaction_love_count'),
+    reactionWowCount: integer('reaction_wow_count'),
+    reactionHahaCount: integer('reaction_haha_count'),
+    reactionCareCount: integer('reaction_care_count'),
+    mediaType: varchar('media_type', { length: 50 }),
+    thumbnailUrl: text('thumbnail_url'),
+    engagementScore: numeric('engagement_score', { precision: 10, scale: 4 }),
   },
   (table) => [
     uniqueIndex('facebook_posts_post_id_idx').on(table.postId),
@@ -373,7 +415,82 @@ export const followerHistory = pgTable(
 );
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 10. PIPELINE RUNS
+// 11. MARKET SNAPSHOTS (002_schema_enhancements)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const marketSnapshots = pgTable(
+  'market_snapshots',
+  {
+    id: serial('id').primaryKey(),
+    snapshotDate: date('snapshot_date', { mode: 'date' }).notNull(),
+    totalActiveAds: integer('total_active_ads').notNull().default(0),
+    activeAdvertisers: integer('active_advertisers').notNull().default(0),
+    totalCompetitors: integer('total_competitors').notNull().default(0),
+    marketLeaderId: integer('market_leader_id')
+      .references(() => competitors.id, { onDelete: 'set null' }),
+    clientAdCount: integer('client_ad_count').notNull().default(0),
+    clientSov: numeric('client_sov', { precision: 5, scale: 2 }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex('market_snapshots_snapshot_date_idx').on(table.snapshotDate),
+    index('market_snapshots_market_leader_idx').on(table.marketLeaderId),
+  ],
+);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 12. COMPETITOR SEGMENTS (002_schema_enhancements)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const competitorSegments = pgTable(
+  'competitor_segments',
+  {
+    id: serial('id').primaryKey(),
+    competitorId: integer('competitor_id')
+      .notNull()
+      .references(() => competitors.id, { onDelete: 'cascade' }),
+    segmentName: varchar('segment_name', { length: 50 }).notNull(),
+    isActive: boolean('is_active').notNull().default(true),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex('competitor_segments_comp_seg_idx').on(
+      table.competitorId,
+      table.segmentName,
+    ),
+    index('competitor_segments_competitor_id_idx').on(table.competitorId),
+    index('competitor_segments_segment_name_idx').on(table.segmentName),
+  ],
+);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 13. REPORT ALERTS (002_schema_enhancements)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const reportAlerts = pgTable(
+  'report_alerts',
+  {
+    id: serial('id').primaryKey(),
+    alertDate: date('alert_date', { mode: 'date' }).notNull(),
+    severity: varchar('severity', { length: 20 }).notNull().default('info'),
+    competitorId: integer('competitor_id')
+      .references(() => competitors.id, { onDelete: 'set null' }),
+    alertType: varchar('alert_type', { length: 50 }).notNull(),
+    message: text('message').notNull(),
+    messageThai: text('message_thai'),
+    isActionable: boolean('is_actionable').notNull().default(false),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index('report_alerts_alert_date_idx').on(table.alertDate),
+    index('report_alerts_competitor_id_idx').on(table.competitorId),
+    index('report_alerts_severity_idx').on(table.severity),
+    index('report_alerts_is_actionable_idx').on(table.isActionable),
+  ],
+);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 14. PIPELINE RUNS
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const pipelineRuns = pgTable(

@@ -1,0 +1,137 @@
+<div class="page-break">
+  <h2>Threat Assessment Matrix / เมทริกซ์ประเมินความเสี่ยง</h2>
+
+  {{!-- Threat summary counts --}}
+  <div class="grid-4 mt-2">
+    <div class="card text-center no-break" style="border-top:3px solid var(--red);">
+      <small>Critical</small>
+      <p style="font-size:1.6rem;margin:.2rem 0;color:var(--red);">{{threatMatrix.criticalCount}}</p>
+    </div>
+    <div class="card text-center no-break" style="border-top:3px solid var(--gold);">
+      <small>High</small>
+      <p style="font-size:1.6rem;margin:.2rem 0;color:var(--gold-dark);">{{threatMatrix.highCount}}</p>
+    </div>
+    <div class="card text-center no-break" style="border-top:3px solid var(--navy);">
+      <small>Medium</small>
+      <p style="font-size:1.6rem;margin:.2rem 0;color:var(--navy);">{{threatMatrix.mediumCount}}</p>
+    </div>
+    <div class="card text-center no-break" style="border-top:3px solid var(--gray-300);">
+      <small>Low</small>
+      <p style="font-size:1.6rem;margin:.2rem 0;color:var(--gray-500);">{{threatMatrix.lowCount}}</p>
+    </div>
+  </div>
+
+  {{!-- 2×2 Quadrant table --}}
+  <div class="section mt-2">
+    <h3>Threat Matrix / เมทริกซ์ความเสี่ยง</h3>
+    <p style="font-size:.85rem;color:var(--gray-500);">SOV threshold: {{threatMatrix.sovThreshold}}% (market average)</p>
+
+    <div class="grid-2 mt-1">
+      {{!-- Top-left: High Threat + High SOV = Watch Closely --}}
+      <div class="card no-break" style="background:#fff5f5;border:1px solid #fca5a5;">
+        <h4 style="color:var(--red);">⚠️ Watch Closely — High Threat + High SOV</h4>
+        {{#each threatMatrix.quadrants.highThreatHighSov}}
+        <div style="display:flex;justify-content:space-between;padding:.3rem 0;border-bottom:1px solid #fee2e2;">
+          <span>
+            <strong>{{name}}</strong>
+            {{#if isCustomer}}<span class="badge badge-info">YOU</span>{{/if}}
+          </span>
+          <span>
+            <span class="badge badge-critical">{{threatLevel}}</span>
+            <small style="margin-left:.3rem;">{{shareOfVoice}}% SOV</small>
+          </span>
+        </div>
+        {{else}}
+        <p style="color:var(--gray-500);font-size:.85rem;">None in this quadrant ✓</p>
+        {{/each}}
+      </div>
+
+      {{!-- Top-right: High Threat + Low SOV = Monitor --}}
+      <div class="card no-break" style="background:#fffbf0;border:1px solid #fbbf24;">
+        <h4 style="color:var(--gold-dark);">👀 Monitor — High Threat + Low SOV</h4>
+        {{#each threatMatrix.quadrants.highThreatLowSov}}
+        <div style="display:flex;justify-content:space-between;padding:.3rem 0;border-bottom:1px solid #fef3c7;">
+          <span>
+            <strong>{{name}}</strong>
+            {{#if isCustomer}}<span class="badge badge-info">YOU</span>{{/if}}
+          </span>
+          <span>
+            <span class="badge badge-warning">{{threatLevel}}</span>
+            <small style="margin-left:.3rem;">{{shareOfVoice}}% SOV</small>
+          </span>
+        </div>
+        {{else}}
+        <p style="color:var(--gray-500);font-size:.85rem;">None in this quadrant</p>
+        {{/each}}
+      </div>
+
+      {{!-- Bottom-left: Low Threat + High SOV = Benchmark --}}
+      <div class="card no-break" style="background:#f0f9ff;border:1px solid #93c5fd;">
+        <h4 style="color:var(--navy);">📊 Benchmark — Low Threat + High SOV</h4>
+        {{#each threatMatrix.quadrants.lowThreatHighSov}}
+        <div style="display:flex;justify-content:space-between;padding:.3rem 0;border-bottom:1px solid #dbeafe;">
+          <span>
+            <strong>{{name}}</strong>
+            {{#if isCustomer}}<span class="badge badge-info">YOU</span>{{/if}}
+          </span>
+          <span>
+            <span class="badge badge-info">{{threatLevel}}</span>
+            <small style="margin-left:.3rem;">{{shareOfVoice}}% SOV</small>
+          </span>
+        </div>
+        {{else}}
+        <p style="color:var(--gray-500);font-size:.85rem;">None in this quadrant</p>
+        {{/each}}
+      </div>
+
+      {{!-- Bottom-right: Low Threat + Low SOV = Observe --}}
+      <div class="card no-break" style="background:var(--gray-50);border:1px solid var(--gray-200);">
+        <h4 style="color:var(--gray-500);">🔍 Observe — Low Threat + Low SOV</h4>
+        {{#each threatMatrix.quadrants.lowThreatLowSov}}
+        <div style="display:flex;justify-content:space-between;padding:.3rem 0;border-bottom:1px solid var(--gray-200);">
+          <span>
+            <strong>{{name}}</strong>
+            {{#if isCustomer}}<span class="badge badge-info">YOU</span>{{/if}}
+          </span>
+          <small>{{shareOfVoice}}% SOV</small>
+        </div>
+        {{else}}
+        <p style="color:var(--gray-500);font-size:.85rem;">None in this quadrant</p>
+        {{/each}}
+      </div>
+    </div>
+  </div>
+
+  {{!-- Full threat table --}}
+  <div class="section mt-2">
+    <h3>All Competitors — Threat Ranking / การจัดอันดับความเสี่ยงทั้งหมด</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Competitor</th>
+          <th>Category</th>
+          <th>Threat Level</th>
+          <th>Share of Voice</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each threatMatrix.entries}}
+        <tr class="{{#if isCustomer}}highlight{{/if}} no-break">
+          <td>
+            <strong>{{name}}</strong>
+            {{#if isCustomer}}<span class="badge badge-info">YOU</span>{{/if}}
+          </td>
+          <td><small>{{category}}</small></td>
+          <td><span class="badge {{threatBadgeClass threatLevel}}">{{threatLevel}}</span></td>
+          <td>
+            <div class="progress-bar" style="width:80px;display:inline-block;vertical-align:middle;">
+              <div class="progress-fill" style="width:{{shareOfVoice}}%;background:{{threatMatrixColor threatLevel}};"></div>
+            </div>
+            <small style="margin-left:.3rem;">{{shareOfVoice}}%</small>
+          </td>
+        </tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+</div>
